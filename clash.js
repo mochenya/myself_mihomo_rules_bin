@@ -28,10 +28,10 @@ const domesticNameservers = [
 ];
 // 国外DNS服务器
 const foreignNameservers = [
+  "https://8.8.4.4/dns-query", // GoogleDNS  
   "https://208.67.222.222/dns-query", // OpenDNS
   "https://77.88.8.8/dns-query", //YandexDNS
   "https://1.1.1.1/dns-query", // CloudflareDNS
-  "https://8.8.4.4/dns-query", // GoogleDNS  
 ];
 
 // 程序入口
@@ -96,12 +96,14 @@ const dnsConfig = {
     // 微信快速登录检测失败
     "localhost.work.weixin.qq.com"
   ],
-  "default-nameserver": ["223.5.5.5", "223.6.6.6"], //可修改成自己ISP的DNS
+  "default-nameserver": ["223.5.5.5", "8.8.4.4"], //可修改成自己ISP的DNS
   "nameserver": [...foreignNameservers],
   "proxy-server-nameserver": [...domesticNameservers],
   "direct-nameserver": [...domesticNameservers],
   "nameserver-policy": {
-    "geosite:private,cn": domesticNameservers
+    "geosite:private,cn": domesticNameservers,
+    "geosite:geolocation-!cn": foreignNameservers,
+    // "geosite:apple": domesticNameservers, // Apple可以走国内dns
   }
 };
 
@@ -384,180 +386,14 @@ const yamlRule = {
   "proxy": "Proxy"
 };
 
-const mrsRule = {
-  "type": "http",
-  "format": "mrs",
-  "interval": 86400,
-  "proxy": "Proxy"
-};
-
 // 规则集配置
 const ruleProviders = {
-  "Apple": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple.mrs",
-    "path": "./ruleset/apple.mrs"
-  },
-  "Telegram": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs",
-    "path": "./ruleset/telegram.mrs"
-  },
-  "YouTube": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs",
-    "path": "./ruleset/youtube.mrs"
-  },
-  // "BiliBili": {
-  //   ...yamlRule,
-  //   "behavior": "classical",
-  //   "url": "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/BiliBili/BiliBili.yaml",
-  //   "path": "./ruleset/BiliBili.yaml"
-  // },
-  // "TikTok": {
-  //   ...ruleProviderCommon,
-  //   "behavior": "classical",
-  //   "url": "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/TikTok/TikTok.yaml",
-  //   "path": "./ruleset/TikTok.yaml"
-  // },
-  "Spotify": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/spotify.mrs",
-    "path": "./ruleset/spotify.mrs"
-  },
-  // "Netflix": {
-  //   ...ruleProviderCommon,
-  //   "behavior": "classical",
-  //   "url": "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Netflix/Netflix.yaml",
-  //   "path": "./ruleset/Netflix.yaml"
-  // },
-  // "Disney": {
-  //   ...ruleProviderCommon,
-  //   "behavior": "classical",
-  //   "url": "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Disney/Disney.yaml",
-  //   "path": "./ruleset/Disney.yaml"
-  // },
-  "Google": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/google.mrs",
-    "path": "./ruleset/google.mrs"
-  },
-  "OpenAI": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/openai.mrs",
-    "path": "./ruleset/openai.mrs"
-  },
-  "Microsoft": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/microsoft.mrs",
-    "path": "./ruleset/microsoft.mrs"
-  },
-  "Twitter": {
-    ...yamlRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Twitter/Twitter.yaml",
-    "path": "./ruleset/Twitter.yaml"
-  },
-  "Steam": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/steam.mrs",
-    "path": "./ruleset/steam.mrs"
-  },
-  "OneDrive": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/onedrive.mrs",
-    "path": "./ruleset/onedrive.mrs"
-  },
-  // "Emby": {
-  //   ...ruleProviderCommon,
-  //   "behavior": "classical",
-  //   "url": "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Emby/Emby.yaml",
-  //   "path": "./ruleset/Emby.yaml"
-  // },
-  "Claude": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/anthropic.mrs",
-    "path": "./ruleset/anthropic.mrs"
-  },
-  "Github": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/github.mrs",
-    "path": "./ruleset/github.mrs"
-  },
-
   // Loyalsoldier
-  "proxy": {
-    ...yamlRule,
-    "behavior": "domain",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt",
-    "path": "./ruleset/loyalsoldier/proxy.yaml"
-  },
-  "direct": {
-    ...yamlRule,
-    "behavior": "domain",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt",
-    "path": "./ruleset/loyalsoldier/direct.yaml"
-  },
-  "private": {
-    ...yamlRule,
-    "behavior": "domain",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt",
-    "path": "./ruleset/loyalsoldier/private.yaml"
-  },
-  "gfw": {
-    ...yamlRule,
-    "behavior": "domain",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt",
-    "path": "./ruleset/loyalsoldier/gfw.yaml"
-  },
-  "tld-not-cn": {
-    ...yamlRule,
-    "behavior": "domain",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt",
-    "path": "./ruleset/loyalsoldier/tld-not-cn.yaml"
-  },
-  "telegramcidr": {
-    ...yamlRule,
-    "behavior": "ipcidr",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt",
-    "path": "./ruleset/loyalsoldier/telegramcidr.yaml"
-  },
-  "cncidr": {
-    ...yamlRule,
-    "behavior": "ipcidr",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt",
-    "path": "./ruleset/loyalsoldier/cncidr.yaml"
-  },
-  "lancidr": {
-    ...yamlRule,
-    "behavior": "ipcidr",
-    "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt",
-    "path": "./ruleset/loyalsoldier/lancidr.yaml"
-  },
   "applications": {
     ...yamlRule,
     "behavior": "classical",
     "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt",
     "path": "./ruleset/loyalsoldier/applications.yaml"
-  },
-
-  // Ads
-  "google-ads": {
-    ...mrsRule,
-    "behavior": "domain",
-    "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@refs/heads/meta/geo/geosite/google-ads.mrs",
-    "path": "./ruleset/google-ads.mrs"
   },
 };
 
@@ -565,46 +401,33 @@ const ruleProviders = {
 const rules = [
   // Loyalsoldier 规则集
   "RULE-SET,applications,GlobalDirect",
-  "RULE-SET,private,GlobalDirect",
-  // Loyalsoldier 规则集
+  "GEOSITE,private,GlobalDirect",
 
   // Ads
-  "RULE-SET,google-ads,GlobalBlock",
-  
+  "GEOSITE,xiaomi-ads,GlobalBlock",
+  "GEOSITE,google-ads,GlobalBlock",
+
   // 自定义规则
-  "RULE-SET,YouTube,YouTube",
-  "RULE-SET,Google,Google",
-  "RULE-SET,OpenAI,OpenAI",
-  "RULE-SET,Claude,Claude",
-  "RULE-SET,Telegram,Telegram",
-  "RULE-SET,Github,Proxy",
-  "RULE-SET,Twitter,Twitter",
-  "RULE-SET,Spotify,Spotify",
-  "RULE-SET,OneDrive,OneDrive",
-  "RULE-SET,Microsoft,Microsoft",
-  "RULE-SET,Apple,GlobalDirect",
-  // "RULE-SET,BiliBili,BiliBili",
-  // "RULE-SET,TikTok,TikTok",
-  // "RULE-SET,Netflix,Netflix",
-  // "RULE-SET,Disney,Disney",
-  // "RULE-SET,Steam,Steam",
-  // "RULE-SET,Emby,Emby",
+  "GEOSITE,youtube,YouTube",
+  "GEOSITE,google,Google",
+  "GEOSITE,openai,OpenAI",
+  "GEOSITE,anthropic,Claude",
+  "GEOSITE,telegram,Telegram",
+  "GEOSITE,github,Proxy",
+  "GEOSITE,twitter,Twitter",
+  "GEOSITE,spotify,Spotify",
+  "GEOSITE,onedrive,OneDrive",
+  "GEOSITE,microsoft,Microsoft",
+  "GEOSITE,apple,GlobalDirect",
   // 自定义规则
 
-  // Loyalsoldier 规则集
-  "RULE-SET,proxy,Proxy",
-  "RULE-SET,gfw,Proxy",
-  "RULE-SET,tld-not-cn,Proxy",
-  "RULE-SET,direct,GlobalDirect",
-  "RULE-SET,lancidr,GlobalDirect,no-resolve",
-  "RULE-SET,cncidr,GlobalDirect,no-resolve",
-  "RULE-SET,telegramcidr,Proxy,no-resolve",
-  // Loyalsoldier 规则集
+  "GEOSITE,geolocation-!cn,Proxy",
+  "GEOSITE,cn,GlobalDirect",
 
   // 其他规则
-  "GEOSITE,CN,GlobalDirect",
   "GEOIP,LAN,GlobalDirect,no-resolve",
   "GEOIP,CN,GlobalDirect,no-resolve",
+  "GEOIP,telegram,Proxy,no-resolve",
   "MATCH,Proxy"
   // 其他规则
 ];
