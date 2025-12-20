@@ -154,7 +154,7 @@ const proxyGroupConfig = [
     ...groupBaseOption,
     "name": "OpenAI",
     "type": "select",
-    "proxies": ["Proxy", "US", "TW", "JP", "KR", "HK", "DE", "SG", "FR", "UK", "DIRECT"],
+    "proxies": ["Proxy", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
     "include-all": true,
     "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置",
     "icon": "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png"
@@ -163,7 +163,7 @@ const proxyGroupConfig = [
     ...groupBaseOption,
     "name": "Claude",
     "type": "select",
-    "proxies": ["Proxy", "US", "TW", "JP", "KR", "HK", "DE", "SG", "FR", "UK", "DIRECT"],
+    "proxies": ["Proxy", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
     "include-all": true,
     "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置",
     "icon": "https://cdn.jsdelivr.net/gh/ke1ewang/Qi@master/Claude.png"
