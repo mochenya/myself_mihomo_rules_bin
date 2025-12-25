@@ -434,17 +434,17 @@ rule-anchor:
     &domain_mrs { type: http, interval: 86400, behavior: domain, format: mrs }
   domain_text:
     &domain_text { type: http, interval: 86400, behavior: domain, format: text }
-  class_text:
-    &class_text {
+  class_yaml:
+    &class_yaml {
       type: http,
       interval: 86400,
       behavior: classical,
-      format: text,
+      format: yaml,
     }
 
 rule-providers:
   applications:
-    <<: *class_text
+    <<: *class_yaml
     url: https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt
     path: "./ruleset/loyalsoldier/applications.yaml"
 
