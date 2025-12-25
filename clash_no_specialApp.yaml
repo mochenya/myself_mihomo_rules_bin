@@ -504,7 +504,7 @@ rule-providers:
 rules:
   # 本地绕行
   - RULE-SET,fake_ip_filter_text,GlobalDirect
-  - RULE-SET,private_ip,GlobalDirect
+  - RULE-SET,private_ip,GlobalDirect,no-resolve
   - RULE-SET,private_domain,GlobalDirect
   - RULE-SET,applications,GlobalDirect
 
