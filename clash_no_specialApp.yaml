@@ -1,0 +1,523 @@
+# ========================
+# 1. 基础监听与通用设置
+# ========================
+mixed-port: 7890
+allow-lan: false
+bind-address: "*"
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+log-level: info
+global-client-fingerprint: chrome
+keep-alive-idle: 600
+keep-alive-interval: 15
+profile:
+  store-selected: true # 存储上次选择的节点
+  store-fake-ip: true # 持久化 Fake-IP 映射
+
+# ========================
+# 2. 外部控制与面板设置
+# ========================
+external-controller: 0.0.0.0:9090
+secret: ""
+external-ui: ui
+external-ui-name: xd
+external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+
+# ========================
+# 3. GeoIP/GeoSite 数据库配置
+# ========================
+# geodata-loader: memconservative
+# geo-auto-update: true
+# geo-update-interval: 24
+# geox-url:
+#   geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+#   geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+#   mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb"
+#   asn: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+
+# ========================
+# 4. TUN 模式设置 (虚拟网卡)
+# ========================
+tun:
+  enable: true
+  device: utunMihomo
+  stack: mixed
+  dns-hijack: ["any:53", "tcp://any:53"]
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+
+# ========================
+# 5. NTP 时间同步
+# ========================
+ntp:
+  enable: true
+  write-to-system: true
+  server: ntp1.aliyun.com
+  port: 123
+  interval: 30
+
+# ========================
+# 6. 代理集合 (机场订阅来源)
+# ========================
+proxy-providers:
+  Airport:
+    url: ""
+    type: http
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+    # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
+    # override:
+    #   additional-prefix: "✈️ |"
+
+# ========================
+# 7. DNS 解析设置 (防污染核心)
+# ========================
+dns:
+  enable: true
+  listen: "0.0.0.0:1053"
+  ipv6: false
+  prefer-h3: false
+  respect-rules: true
+  use-system-hosts: false
+  cache-algorithm: arc
+  enhanced-mode: fake-ip # 增强模式: Fake-IP
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter: # Fake-IP 过滤列表 (直接返回真实IP的域名)
+    - "RULE-SET:fake_ip_filter_text"
+  default-nameserver: # 引导 DNS (用于解析 DoH 域名)
+    - 223.5.5.5
+    - 8.8.4.4
+  nameserver: # 默认 DNS (通常用于非国内域名)
+    - https://8.8.4.4/dns-query
+    - https://208.67.222.222/dns-query
+    - https://77.88.8.8/dns-query
+    - https://1.1.1.1/dns-query
+  proxy-server-nameserver: # 代理节点本身的域名解析 DNS
+    - https://223.5.5.5/dns-query
+    - https://doh.pub/dns-query
+  direct-nameserver: # 直连 DNS (用于国内域名)
+    - https://223.5.5.5/dns-query
+    - https://doh.pub/dns-query
+  nameserver-policy: # 指定域名走特定 DNS
+    "RULE-SET:cn_domain":
+      - https://223.5.5.5/dns-query
+      - https://doh.pub/dns-query
+    "RULE-SET:geolocation-!cn_domain":
+      - https://8.8.4.4/dns-query
+      - https://208.67.222.222/dns-query
+      - https://77.88.8.8/dns-query
+      - https://1.1.1.1/dns-query
+
+# ========================
+# 8. 锚点配置 (配置模板，供下方引用)
+# ========================
+group-base: &group-base
+  interval: 300
+  timeout: 3000
+  url: "https://www.gstatic.com/generate_204"
+  max-failed-times: 3
+  # hidden: true
+
+region-base: &region-base
+  type: url-test
+  use:
+    - Airport
+  tolerance: 50
+  # hidden: true
+
+# ========================
+# 9. 策略组配置 (决定流量走向)
+# ========================
+proxy-groups:
+  # --- 核心主策略 ---
+  - name: Proxy
+    type: select
+    <<: *group-base
+    proxies:
+      - AUTO
+      - "🇭🇰 | 香港 HK"
+      - "🇹🇼 | 台湾 TW"
+      - "🇯🇵 | 日本 JP"
+      - "🇰🇷 | 韩国 KR"
+      - "🇺🇸 | 美国 US"
+      - "🇩🇪 | 德国 DE"
+      - "🇸🇬 | 新加坡 SG"
+      - "🇫🇷 | 法国 FR"
+      - "🇬🇧 | 英国 UK"
+      - DIRECT
+      - REJECT
+    include-all: true
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png
+
+  - name: AUTO
+    type: url-test
+    <<: *group-base
+    use: [Airport]
+    tolerance: 50
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png
+
+  # --- 应用策略组 (针对特定APP分流) ---
+  # - name: YouTube
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png
+
+  # - name: Google
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png
+
+  # - name: OpenAI
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇺🇸 | 美国 US",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇭🇰 | 香港 HK",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png
+
+  # - name: Claude
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇺🇸 | 美国 US",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇭🇰 | 香港 HK",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/ke1ewang/Qi@master/Claude.png
+
+  # - name: Telegram
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram.png
+
+  # - name: Twitter
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Twitter.png
+
+  # - name: Spotify
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       DIRECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Spotify.png
+
+  # - name: OneDrive
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       DIRECT,
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/OneDrive.png
+
+  # - name: Microsoft
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       DIRECT,
+  #       Proxy,
+  #       REJECT,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Microsoft.png
+
+  # - name: Apple
+  #   type: select
+  #   <<: *group-base
+  #   proxies:
+  #     [
+  #       DIRECT,
+  #       Proxy,
+  #       "🇭🇰 | 香港 HK",
+  #       "🇹🇼 | 台湾 TW",
+  #       "🇯🇵 | 日本 JP",
+  #       "🇰🇷 | 韩国 KR",
+  #       "🇺🇸 | 美国 US",
+  #       "🇩🇪 | 德国 DE",
+  #       "🇸🇬 | 新加坡 SG",
+  #       "🇫🇷 | 法国 FR",
+  #       "🇬🇧 | 英国 UK",
+  #       REJECT,
+  #     ]
+  #   include-all: true
+  #   icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Apple.png
+
+  # --- 地区分组 (自动筛选对应地区节点) ---
+  - name: "🇭🇰 | 香港 HK"
+    <<: *region-base
+    filter: "香港|HK|🇭🇰"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png
+
+  - name: "🇹🇼 | 台湾 TW"
+    <<: *region-base
+    filter: "台湾|TW|🇹🇼"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png
+
+  - name: "🇯🇵 | 日本 JP"
+    <<: *region-base
+    filter: "日本|JP|🇯🇵"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png
+
+  - name: "🇰🇷 | 韩国 KR"
+    <<: *region-base
+    filter: "韩国|KR|🇰🇷"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Korea.png
+
+  - name: "🇺🇸 | 美国 US"
+    <<: *region-base
+    filter: "美国|US|🇺🇸"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png
+
+  - name: "🇩🇪 | 德国 DE"
+    <<: *region-base
+    filter: "德国|DE|🇩🇪"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany.png
+
+  - name: "🇸🇬 | 新加坡 SG"
+    <<: *region-base
+    filter: "新加坡|SG|🇸🇬"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png
+
+  - name: "🇫🇷 | 法国 FR"
+    <<: *region-base
+    filter: "法国|FR|🇫🇷"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/France.png
+
+  - name: "🇬🇧 | 英国 UK"
+    <<: *region-base
+    filter: "英国|GB|🇬🇧"
+    exclude-filter: "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png
+
+  # --- 漏网之鱼与拦截分组 ---
+  - name: GlobalDirect
+    type: select
+    proxies: [DIRECT, Proxy]
+    include-all: true
+    <<: *group-base
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/link.svg
+
+  - name: GlobalBlock
+    type: select
+    proxies: [REJECT, DIRECT]
+    <<: *group-base
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/block.svg
+
+# ========================
+# 10. 外部规则提供者 (Rule Set)
+# ========================
+rule-anchor:
+  ip_mrs: &ip_mrs { type: http, interval: 86400, behavior: ipcidr, format: mrs }
+  domain_mrs:
+    &domain_mrs { type: http, interval: 86400, behavior: domain, format: mrs }
+  domain_text:
+    &domain_text { type: http, interval: 86400, behavior: domain, format: text }
+  class_text:
+    &class_text {
+      type: http,
+      interval: 86400,
+      behavior: classical,
+      format: text,
+    }
+
+rule-providers:
+  applications:
+    <<: *class_text
+    url: https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt
+    path: "./ruleset/loyalsoldier/applications.yaml"
+
+  private_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/private.mrs"
+
+  fake_ip_filter_text:
+    <<: *domain_text
+    url: "https://raw.githubusercontent.com/juewuy/ShellCrash/refs/heads/dev/public/fake_ip_filter.list"
+    path: "./ruleset/meta-rules-dat/list/fake_ip_filter.list"
+
+  private_ip:
+    <<: *ip_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs"
+    path: "./ruleset/meta-rules-dat/geoip/private.mrs"
+
+  cn_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/cn.mrs"
+
+  cn_ip:
+    <<: *ip_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"
+    path: "./ruleset/meta-rules-dat/geoip/cn.mrs"
+
+  geolocation-!cn_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/geolocation-!cn.mrs"
+
+  tld-cn_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tld-cn.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/tld-cn.mrs"
+
+  xiaomi-ads_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
+
+  google-ads_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/google-ads.mrs"
+
+  telegram_ip:
+    <<: *ip_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"
+    path: "./ruleset/meta-rules-dat/geoip/telegram.mrs"
+
+# ========================
+# 11. 路由规则 (从上到下匹配)
+# ========================
+rules:
+  # 本地绕行
+  - RULE-SET,fake_ip_filter_text,GlobalDirect
+  - RULE-SET,private_ip,GlobalDirect
+  - RULE-SET,private_domain,GlobalDirect
+  - RULE-SET,applications,GlobalDirect
+
+  # 广告拦截
+  - RULE-SET,xiaomi-ads_domain,GlobalBlock
+  - RULE-SET,google-ads_domain,GlobalBlock
+
+  # 地区分流与兜底
+  - RULE-SET,tld-cn_domain,GlobalDirect
+  - RULE-SET,geolocation-!cn_domain,Proxy
+  - RULE-SET,cn_domain,GlobalDirect
+
+  # 最终 IP 规则 (防止 DNS 泄露或误判)
+  - RULE-SET,telegram_ip,GlobalDirect,no-resolve
+  - RULE-SET,cn_ip,GlobalDirect,no-resolve
+  - MATCH,Proxy
