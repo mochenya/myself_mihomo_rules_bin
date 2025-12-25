@@ -252,7 +252,7 @@ const class_yaml = {
 
 const ruleProviders = {
   "applications": {
-    ...yamlRule,
+    ...class_yaml,
     "url": "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt",
     "path": "./ruleset/loyalsoldier/applications.yaml"
   },
