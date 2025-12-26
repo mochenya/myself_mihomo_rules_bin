@@ -28,10 +28,10 @@ const domesticNameservers = [
 ];
 // 国外DNS服务器
 const foreignNameservers = [
-  "https://8.8.4.4/dns-query", // GoogleDNS  
-  "https://208.67.222.222/dns-query", // OpenDNS
-  "https://77.88.8.8/dns-query", //YandexDNS
-  "https://1.1.1.1/dns-query", // CloudflareDNS
+  "https://8.8.4.4/dns-query#proxy", // GoogleDNS  
+  "https://208.67.222.222/dns-query#proxy", // OpenDNS
+  "https://77.88.8.8/dns-query#proxy", //YandexDNS
+  "https://1.1.1.1/dns-query#proxy", // CloudflareDNS
 ];
 
 // 程序入口
@@ -296,6 +296,11 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
   },
+  "bytedance-ads_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bytedance-ads.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/bytedance-ads.mrs"
+  },
   "google-ads_domain": {
     ...domain_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs",
@@ -318,11 +323,12 @@ const rules = [
 
   // 广告拦截
   "RULE-SET,xiaomi-ads_domain,GlobalBlock",
+  "RULE-SET,bytedance-ads_domain,GlobalBlock",
   "RULE-SET,google-ads_domain,GlobalBlock",
 
   // 地区分流与兜底
-  "RULE-SET,tld-cn_domain,GlobalDirect",
   "RULE-SET,geolocation-!cn_domain,Proxy",
+  "RULE-SET,tld-cn_domain,GlobalDirect",
   "RULE-SET,cn_domain,GlobalDirect",
 
   // 最终 IP 规则
