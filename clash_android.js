@@ -23,7 +23,7 @@
 
 // 国内DNS服务器
 const domesticNameservers = [
-  "https://223.5.5.5/dns-query", // 阿里DoH
+  "https://dns.alidns.com/dns-query", // 阿里DoH
   "https://doh.pub/dns-query" // 腾讯DoH
 ];
 // 国外DNS服务器
@@ -301,6 +301,11 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bytedance-ads.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/bytedance-ads.mrs"
   },
+  "baidu-ads_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/baidu-ads.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/baidu-ads.mrs"
+  },
   "google-ads_domain": {
     ...domain_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs",
@@ -316,6 +321,12 @@ const ruleProviders = {
     ...domain_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/google.mrs"
+  },
+  // Microsoft CN
+  "microsoft@cn_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft@cn.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/microsoft@cn.mrs"
   }
 };
 
@@ -325,15 +336,19 @@ const rules = [
   "RULE-SET,fake_ip_filter_text,GlobalDirect",
   "RULE-SET,private_ip,GlobalDirect,no-resolve",
   "RULE-SET,private_domain,GlobalDirect",
-  "RULE-SET,applications,GlobalDirect",
+  // "RULE-SET,applications,GlobalDirect",
 
   // 广告拦截
   "RULE-SET,xiaomi-ads_domain,GlobalBlock",
   "RULE-SET,bytedance-ads_domain,GlobalBlock",
+  "RULE-SET,baidu-ads_domain,GlobalBlock",
   "RULE-SET,google-ads_domain,GlobalBlock",
 
   // Google
   "RULE-SET,google_domain,Proxy",
+
+  // Microsoft CN
+  "RULE-SET,microsoft@cn_domain,GlobalDirect",
 
   // 地区分流与兜底
   "RULE-SET,geolocation-!cn_domain,Proxy",

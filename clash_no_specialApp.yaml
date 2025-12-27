@@ -98,14 +98,14 @@ dns:
     - https://77.88.8.8/dns-query
     - https://1.1.1.1/dns-query
   proxy-server-nameserver: # 代理节点本身的域名解析 DNS
-    - https://223.5.5.5/dns-query
+    - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
   direct-nameserver: # 直连 DNS (用于国内域名)
-    - https://223.5.5.5/dns-query
+    - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
   nameserver-policy: # 指定域名走特定 DNS
     "RULE-SET:cn_domain":
-      - https://223.5.5.5/dns-query
+      - https://dns.alidns.com/dns-query
       - https://doh.pub/dns-query
     "RULE-SET:geolocation-!cn_domain":
       - https://8.8.4.4/dns-query
@@ -429,17 +429,37 @@ proxy-groups:
 # 10. 外部规则提供者 (Rule Set)
 # ========================
 rule-anchor:
-  ip_mrs: &ip_mrs { type: http, interval: 86400, behavior: ipcidr, format: mrs }
+  ip_mrs:
+    &ip_mrs {
+      type: http,
+      interval: 86400,
+      behavior: ipcidr,
+      format: mrs,
+      proxy: Proxy,
+    }
   domain_mrs:
-    &domain_mrs { type: http, interval: 86400, behavior: domain, format: mrs }
+    &domain_mrs {
+      type: http,
+      interval: 86400,
+      behavior: domain,
+      format: mrs,
+      proxy: Proxy,
+    }
   domain_text:
-    &domain_text { type: http, interval: 86400, behavior: domain, format: text }
+    &domain_text {
+      type: http,
+      interval: 86400,
+      behavior: domain,
+      format: text,
+      proxy: Proxy,
+    }
   class_yaml:
     &class_yaml {
       type: http,
       interval: 86400,
       behavior: classical,
       format: yaml,
+      proxy: Proxy,
     }
 
 rule-providers:
@@ -497,12 +517,18 @@ rule-providers:
     <<: *ip_mrs
     url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"
     path: "./ruleset/meta-rules-dat/geoip/telegram.mrs"
-  
+
   # Google
-  google:
+  google_domain:
     <<: *domain_mrs
     url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"
     path: "./ruleset/meta-rules-dat/geosite/google.mrs"
+
+  # Microsoft CN
+  microsoft@cn_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft@cn.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/microsoft@cn.mrs"
 
 # ========================
 # 11. 路由规则 (从上到下匹配)
@@ -519,7 +545,10 @@ rules:
   # - RULE-SET,google-ads_domain,GlobalBlock
 
   # Google
-  - RULE-SET,google,Proxy
+  - RULE-SET,google_domain,Proxy
+
+  # Microsoft CN
+  - RULE-SET,microsoft@cn_domain,GlobalDirect
 
   # 地区分流与兜底
   - RULE-SET,geolocation-!cn_domain,Proxy
