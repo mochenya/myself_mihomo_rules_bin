@@ -310,6 +310,12 @@ const ruleProviders = {
     ...ip_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs",
     "path": "./ruleset/meta-rules-dat/geoip/telegram.mrs"
+  },
+  // Google
+  "google_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/google.mrs"
   }
 };
 
@@ -326,13 +332,16 @@ const rules = [
   "RULE-SET,bytedance-ads_domain,GlobalBlock",
   "RULE-SET,google-ads_domain,GlobalBlock",
 
+  // Google
+  "RULE-SET,google_domain,Proxy",
+
   // 地区分流与兜底
   "RULE-SET,geolocation-!cn_domain,Proxy",
   "RULE-SET,tld-cn_domain,GlobalDirect",
   "RULE-SET,cn_domain,GlobalDirect",
 
   // 最终 IP 规则
-  "RULE-SET,telegram_ip,GlobalDirect,no-resolve",
+  "RULE-SET,telegram_ip,Proxy,no-resolve",
   "RULE-SET,cn_ip,GlobalDirect,no-resolve",
   "MATCH,Proxy"
 ];
