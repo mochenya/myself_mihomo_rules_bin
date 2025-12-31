@@ -78,7 +78,8 @@ const dnsConfig = {
   "enhanced-mode": "fake-ip",
   "fake-ip-range": "198.18.0.1/16",
   "fake-ip-filter": [
-    "RULE-SET:fake_ip_filter_text"
+    "RULE-SET:fake_ip_filter_text",
+    "RULE-SET:cn_domain"
   ],
   "default-nameserver": ["223.5.5.5", "8.8.4.4"], //可修改成自己ISP的DNS
   "nameserver": [...foreignNameservers],
