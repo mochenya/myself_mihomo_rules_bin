@@ -21,10 +21,10 @@
 //   },
 // }
 
-// 国内DNS服务器
+// 国内DNS服务器（使用 IP 避免域名解析循环依赖）
 const domesticNameservers = [
-  "https://223.5.5.5/dns-query", // 阿里DoH
-  "https://doh.pub/dns-query" // 腾讯DoH
+  "https://223.5.5.5/dns-query", // 阿里DoH IP
+  "https://119.29.29.29/dns-query" // 腾讯DoH IP
 ];
 // 国外DNS服务器
 const foreignNameservers = [
@@ -51,6 +51,8 @@ function main(config) {
   };
   // 覆盖原配置中DNS配置
   config["dns"] = dnsConfig;
+  // 覆盖原配置中的NTP配置
+  config["ntp"] = ntpConfig;
   // 覆盖原配置中的代理组
   config["proxy-groups"] = proxyGroupConfig;
   // 覆盖原配置中的规则
@@ -65,6 +67,15 @@ function main(config) {
   // 返回修改后的配置
   return config;
 }
+
+// NTP时间同步配置
+const ntpConfig = {
+  "enable": true,
+  "write-to-system": true,
+  "server": "ntp1.aliyun.com",
+  "port": 123,
+  "interval": 30
+};
 
 // DNS配置
 const dnsConfig = {

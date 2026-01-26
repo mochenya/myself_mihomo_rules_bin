@@ -21,17 +21,22 @@
 //   },
 // }
 
-// 国内DNS服务器
+// 国内DNS服务器（用于代理节点域名解析）
 const domesticNameservers = [
-  "https://dns.alidns.com/dns-query", // 阿里DoH
-  "https://doh.pub/dns-query" // 腾讯DoH
+  "https://223.5.5.5/dns-query",
+  "https://119.29.29.29/dns-query"
+];
+// 直连DNS（国内域名）
+const directNameservers = [
+  "https://dns.alidns.com/dns-query",
+  "https://doh.pub/dns-query"
 ];
 // 国外DNS服务器
 const foreignNameservers = [
-  "https://8.8.4.4/dns-query#proxy", // GoogleDNS  
-  "https://208.67.222.222/dns-query#proxy", // OpenDNS
-  "https://77.88.8.8/dns-query#proxy", //YandexDNS
-  "https://1.1.1.1/dns-query#proxy", // CloudflareDNS
+  "https://8.8.4.4/dns-query",
+  "https://208.67.222.222/dns-query",
+  "https://77.88.8.8/dns-query",
+  "https://1.1.1.1/dns-query"
 ];
 
 // 程序入口
@@ -51,6 +56,8 @@ function main(config) {
   };
   // 覆盖原配置中DNS配置
   config["dns"] = dnsConfig;
+  // 覆盖原配置中的NTP配置
+  // config["ntp"] = ntpConfig;
   // 覆盖原配置中的代理组
   config["proxy-groups"] = proxyGroupConfig;
   // 覆盖原配置中的规则
@@ -66,6 +73,15 @@ function main(config) {
   return config;
 }
 
+// NTP时间同步配置
+const ntpConfig = {
+  "enable": true,
+  "write-to-system": true,
+  "server": "ntp1.aliyun.com",
+  "port": 123,
+  "interval": 30
+};
+
 // DNS配置
 const dnsConfig = {
   "enable": true,
@@ -78,17 +94,16 @@ const dnsConfig = {
   "enhanced-mode": "fake-ip",
   "fake-ip-range": "198.18.0.1/16",
   "fake-ip-filter": [
-    "RULE-SET:fake_ip_filter_text",
-    "RULE-SET:cn_domain"
+    "rule-set:fake_ip_filter_text",
+    "rule-set:cn_domain"
   ],
   "default-nameserver": ["223.5.5.5", "8.8.4.4"], //可修改成自己ISP的DNS
   "nameserver": [...foreignNameservers],
   "proxy-server-nameserver": [...domesticNameservers],
-  "direct-nameserver": [...domesticNameservers],
+  "direct-nameserver": [...directNameservers],
   "nameserver-policy": {
-    "geosite:private,cn": domesticNameservers,
-    "geosite:geolocation-!cn": foreignNameservers,
-    // "geosite:apple": domesticNameservers, // Apple可以走国内dns
+    "rule-set:cn_domain": [...directNameservers],
+    "rule-set:geolocation-!cn_domain": [...foreignNameservers]
   }
 };
 
