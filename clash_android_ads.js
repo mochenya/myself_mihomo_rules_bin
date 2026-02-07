@@ -307,25 +307,10 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tld-cn.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/tld-cn.mrs"
   },
-  "xiaomi-ads_domain": {
+  "category-ads_domain": {
     ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
-  },
-  "bytedance-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bytedance-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/bytedance-ads.mrs"
-  },
-  "baidu-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/baidu-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/baidu-ads.mrs"
-  },
-  "google-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/google-ads.mrs"
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads@ads.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/category-ads@ads.mrs"
   },
   "telegram_ip": {
     ...ip_mrs,
@@ -354,10 +339,7 @@ const rules = [
   // "RULE-SET,applications,GlobalDirect",
 
   // 广告拦截
-  "RULE-SET,xiaomi-ads_domain,GlobalBlock",
-  "RULE-SET,bytedance-ads_domain,GlobalBlock",
-  "RULE-SET,baidu-ads_domain,GlobalBlock",
-  "RULE-SET,google-ads_domain,GlobalBlock",
+  "RULE-SET,category-ads_domain,GlobalBlock",
 
   // Google
   "RULE-SET,google_domain,Proxy",

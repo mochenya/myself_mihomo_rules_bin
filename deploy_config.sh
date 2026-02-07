@@ -10,8 +10,8 @@ systemctl stop mihomo.service
 
 # 复制配置文件
 echo "复制配置文件到 $CONFIG_DIR/..."
-cp clash.yaml "$CONFIG_DIR/"
-cp clash_no_specialApp.yaml "$CONFIG_DIR/"
+cp clash.yaml "$CONFIG_DIR/clash.yaml"
+cp clash_no_specialApp_my.yaml "$CONFIG_DIR/clash_no_specialApp.yaml"
 
 # 启动服务
 echo "启动 mihomo.service..."

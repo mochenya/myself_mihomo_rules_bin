@@ -85,7 +85,7 @@ proxy-providers:
       interval: 300
     # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     override:
-      additional-prefix: "✈️ 顶级 | "
+      additional-prefix: "✈️ | "
 
 # ========================
 # 7. DNS 解析设置 (防止 DNS 泄漏)
@@ -550,7 +550,6 @@ rule-providers:
 # ========================
 rules:
   # 本地绕行
-  - RULE-SET,fake_ip_filter_text,GlobalDirect
   - RULE-SET,private_ip,GlobalDirect,no-resolve
   - RULE-SET,private_domain,GlobalDirect
   - RULE-SET,applications,GlobalDirect
