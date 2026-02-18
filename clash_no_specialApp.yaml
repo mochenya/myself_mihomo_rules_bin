@@ -518,15 +518,15 @@ rule-providers:
     url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tld-cn.mrs"
     path: "./ruleset/meta-rules-dat/geosite/tld-cn.mrs"
 
-  xiaomi-ads_domain:
-    <<: *domain_mrs
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs"
-    path: "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
+  # xiaomi-ads_domain:
+  #   <<: *domain_mrs
+  #   url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs"
+  #   path: "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
 
-  google-ads_domain:
-    <<: *domain_mrs
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs"
-    path: "./ruleset/meta-rules-dat/geosite/google-ads.mrs"
+  # google-ads_domain:
+  #   <<: *domain_mrs
+  #   url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs"
+  #   path: "./ruleset/meta-rules-dat/geosite/google-ads.mrs"
 
   telegram_ip:
     <<: *ip_mrs
@@ -565,9 +565,9 @@ rules:
   - RULE-SET,microsoft@cn_domain,GlobalDirect
 
   # 地区分流与兜底
-  - RULE-SET,geolocation-!cn_domain,Proxy
   - RULE-SET,tld-cn_domain,GlobalDirect
   - RULE-SET,cn_domain,GlobalDirect
+  - RULE-SET,geolocation-!cn_domain,Proxy
 
   # 最终 IP 规则 (防止 DNS 泄露或误判)
   - RULE-SET,telegram_ip,Proxy,no-resolve
