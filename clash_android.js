@@ -258,6 +258,14 @@ const domain_text = {
   "proxy": "Proxy"
 };
 
+const domain_yaml = {
+  "type": "http",
+  "behavior": "domain",
+  "format": "yaml",
+  "interval": 86400,
+  "proxy": "Proxy"
+};
+
 const class_yaml = {
   "type": "http",
   "behavior": "classical",
@@ -343,6 +351,12 @@ const ruleProviders = {
     ...domain_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft@cn.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/microsoft@cn.mrs"
+  },
+  // 自用过滤
+  "filter_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/mochenya/myself_mihomo_rules_bin/refs/heads/main/providers/filter.yaml",
+    "path": "./ruleset/mochen/filter.yaml"
   }
 };
 
@@ -350,6 +364,7 @@ const ruleProviders = {
 const rules = [
   // 本地绕行
   "RULE-SET,private_ip,GlobalDirect,no-resolve",
+  "RULE-SET,filter,GlobalDirect",
   "RULE-SET,private_domain,GlobalDirect",
   // "RULE-SET,applications,GlobalDirect",
 
