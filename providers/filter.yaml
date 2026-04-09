@@ -1,8 +1,9 @@
-# API 中转站
-- DOMAIN-SUFFIX,ai.xem8k5.top
-- DOMAIN-SUFFIX,newai.yellowpeachxgp.com
-- DOMAIN-SUFFIX,new.xem8k5.top
-# 码蹄集
-- DOMAIN-SUFFIX,matiji.net
-# 智慧树
-- DOMAIN-SUFFIX,polymas.com
+payload:
+  # API 中转站
+  - ai.xem8k5.top
+  - newai.yellowpeachxgp.com
+  - new.xem8k5.top
+  # 码蹄集
+  - matiji.net
+  # 智慧树
+  - polymas.com
