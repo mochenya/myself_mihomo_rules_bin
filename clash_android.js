@@ -353,8 +353,8 @@ const ruleProviders = {
     "path": "./ruleset/meta-rules-dat/geosite/microsoft@cn.mrs"
   },
   // 自用过滤
-  "filter_domain": {
-    ...domain_mrs,
+  "filter": {
+    ...domain_yaml,
     "url": "https://raw.githubusercontent.com/mochenya/myself_mihomo_rules_bin/refs/heads/main/providers/filter.yaml",
     "path": "./ruleset/mochen/filter.yaml"
   }
