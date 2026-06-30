@@ -301,7 +301,7 @@ const rules = [
   "RULE-SET,private_ip,GlobalDirect,no-resolve",
   "RULE-SET,filter,GlobalDirect",
   "RULE-SET,private_domain,GlobalDirect",
-  // "RULE-SET,applications,GlobalDirect",
+  "RULE-SET,applications,GlobalDirect",
 
   // 广告拦截
   "RULE-SET,category-ads_domain,GlobalBlock",

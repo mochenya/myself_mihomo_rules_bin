@@ -18,8 +18,8 @@ profile:
 # ========================
 # 2. 外部控制与面板设置
 # ========================
-external-controller: 0.0.0.0:9090
-secret: ""
+external-controller: 127.0.0.1:9090 # 仅监听本机，减少无关暴露与额外访问
+secret: "" # 当前仅本机访问，暂不额外启用鉴权
 external-ui: ui
 external-ui-name: xd
 external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
@@ -27,14 +27,14 @@ external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-
 # ========================
 # 3. GeoIP/GeoSite 数据库配置
 # ========================
-# geodata-loader: memconservative
-# geo-auto-update: true
-# geo-update-interval: 24
-# geox-url:
-#   geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
-#   geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
-#   mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb"
-#   asn: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+geodata-loader: memconservative
+geo-auto-update: false # 关闭自动更新，减少后台定时下载与检查
+geo-update-interval: 24 # 保留间隔配置，后续如重新开启自动更新可直接复用
+geox-url:
+  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+  geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb"
+  asn: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
 
 # ========================
 # 4. TUN 模式设置 (虚拟网卡)
@@ -43,11 +43,13 @@ tun:
   enable: true
   device: utunMihomo
   stack: mixed
-  dns-hijack: ["any:53", "tcp://any:53"]
+  dns-hijack:
+    - any:53
+    - tcp://any:53
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
-  strict-route: true  # 防止多宿主 DNS 泄露（Windows/Android/Linux）
+  strict-route: true # 防止多宿主 DNS 泄露（Windows/Android/Linux）
 
 # ========================
 # 5. NTP 时间同步
@@ -57,7 +59,7 @@ ntp:
   write-to-system: true
   server: ntp1.aliyun.com
   port: 123
-  interval: 30
+  interval: 120 # 降低同步频率，减少后台周期任务
 
 # ========================
 # 6. 代理集合 (机场订阅来源)
@@ -70,7 +72,8 @@ proxy-providers:
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 300
+      interval: 1800 # 降低节点探活频率，减少后台测速开销
+    lazy: true # 仅在实际使用该 provider 时再进行测速
     # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     # override:
     #   additional-prefix: "✈️ |"
@@ -82,7 +85,8 @@ proxy-providers:
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 300
+      interval: 1800 # 降低节点探活频率，减少后台测速开销
+    lazy: true # 仅在实际使用该 provider 时再进行测速
     # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     override:
       additional-prefix: "✈️ | "
@@ -106,43 +110,60 @@ dns:
   default-nameserver: # 引导 DNS (用于解析 DoH 域名)
     - 223.5.5.5
     - 8.8.4.4
-  nameserver: # 默认 DNS (通常用于非国内域名)
-    - https://8.8.4.4/dns-query
-    - https://208.67.222.222/dns-query
-    - https://77.88.8.8/dns-query
-    - https://1.1.1.1/dns-query
+  nameserver: # 默认 DNS (兜底解析，用于不在 nameserver-policy 中的域名)
+    # 使用国内 DNS 作为兜底，确保未分类域名获得准确的国内解析
+    # 国外域名已由 nameserver-policy 中的 geolocation-!cn_domain 接管
+    - https://223.5.5.5/dns-query
+    - https://doh.pub/dns-query
+  fallback: # 备用 DNS (当 nameserver 解析失败时尝试)
+    # 简单兜底：nameserver 解析失败时回退到国外 DNS
+    # 不使用 fallback-filter 避免增加复杂度
+    # 指定 #Proxy 让 DNS 查询走代理，隐藏真实 IP
+    # Cloudflare
+    - "https://1.1.1.1/dns-query"
+    - "https://1.0.0.1/dns-query"
+    # Google
+    - "https://8.8.8.8/dns-query"
+    - "https://8.8.4.4/dns-query"
   proxy-server-nameserver: # 代理节点本身的域名解析 DNS（使用 IP 避免域名解析循环依赖）
     - https://223.5.5.5/dns-query
     - https://119.29.29.29/dns-query
   direct-nameserver: # 直连 DNS (用于国内域名)
-    - https://dns.alidns.com/dns-query
+    - https://223.5.5.5/dns-query
     - https://doh.pub/dns-query
-  nameserver-policy: # 指定域名走特定 DNS
-    "rule-set:cn_domain":
-      - https://dns.alidns.com/dns-query
+  nameserver-policy: # 指定域名走特定 DNS (优先级高于 nameserver/fallback)
+    "rule-set:cn_domain": # 国内域名 → 国内 DNS
+      - https://223.5.5.5/dns-query
       - https://doh.pub/dns-query
-    "rule-set:geolocation-!cn_domain":
-      - https://8.8.4.4/dns-query
-      - https://208.67.222.222/dns-query
-      - https://77.88.8.8/dns-query
+    "rule-set:geolocation-!cn_domain": # 国外域名 → 国外 DNS
       - https://1.1.1.1/dns-query
+      - https://8.8.4.4/dns-query
 
 # ========================
 # 8. 锚点配置 (配置模板，供下方引用)
 # ========================
+# select 类型策略组基础配置（手动选择，无需健康检查）
+select-base: &select-base {}
+  # select 类型不需要 interval/timeout/url 等健康检查配置
+
+  # url-test/fallback 类型策略组基础配置（自动测速）
 group-base: &group-base
-  interval: 300
-  timeout: 3000
+  interval: 1800 # 降低策略组定时测速频率，减少持续探测开销
+  lazy: true # 未切换到当前策略组时不主动测速
+  timeout: 5000
   url: "https://www.gstatic.com/generate_204"
   max-failed-times: 3
   # hidden: true
 
+# 地区分组基础配置（继承 group-base 的健康检查参数）
 region-base: &region-base
+  <<: *group-base # 合并健康检查配置
   type: url-test
   use:
     - Airport-One
     - Airport-Two
   tolerance: 50
+  exclude-filter: "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置" # 统一过滤广告/信息节点
   # hidden: true
 
 # ========================
@@ -152,7 +173,7 @@ proxy-groups:
   # --- 核心主策略 ---
   - name: Proxy
     type: select
-    <<: *group-base
+    <<: *select-base
     proxies:
       - AUTO
       - "🇭🇰 | 香港 HK"
@@ -423,7 +444,6 @@ proxy-groups:
   - name: "🇬🇧 | 英国 UK"
     <<: *region-base
     filter: "英国|GB|🇬🇧"
-    exclude-filter: "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png
 
   # --- 漏网之鱼与拦截分组 ---
@@ -431,13 +451,13 @@ proxy-groups:
     type: select
     proxies: [DIRECT, Proxy]
     include-all: true
-    <<: *group-base
+    <<: *select-base
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/link.svg
 
   - name: GlobalBlock
     type: select
     proxies: [REJECT, DIRECT]
-    <<: *group-base
+    <<: *select-base
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/block.svg
 
 # ========================
@@ -580,8 +600,8 @@ rules:
   - RULE-SET,microsoft@cn_domain,GlobalDirect
 
   # 地区分流与兜底
-  - RULE-SET,tld-cn_domain,GlobalDirect
   - RULE-SET,cn_domain,GlobalDirect
+  - RULE-SET,tld-cn_domain,GlobalDirect
   - RULE-SET,geolocation-!cn_domain,Proxy
 
   # 最终 IP 规则 (防止 DNS 泄露或误判)
