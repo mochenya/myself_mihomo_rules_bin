@@ -7,5 +7,7 @@ payload:
   # 智慧树
   - "+.polymas.com"
   # 千问AI平台
-  - "+qianwenai.com"
+  - "+.qianwenai.com"
+  # 代理 IP 平台
+  - "+.jiuip.com"
   
