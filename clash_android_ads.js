@@ -109,6 +109,22 @@ const proxyGroupConfig = [
     "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png"
   },
+  // --- 应用策略组 ---
+  {
+    ...selectBase,
+    "name": "AI",
+    "type": "select",
+    "proxies": ["Proxy", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
+    "include-all": true
+  },
+  {
+    ...selectBase,
+    "name": "Google",
+    "type": "select",
+    "proxies": ["Proxy", "🇭🇰 | 香港 HK", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇺🇸 | 美国 US", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
+    "include-all": true,
+    "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png"
+  },
   // --- 地区分组 (自动筛选对应地区节点) ---
   {
     ...regionBase,
@@ -275,6 +291,12 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs",
     "path": "./ruleset/meta-rules-dat/geoip/telegram.mrs"
   },
+  // 境外 AI 服务汇总
+  "category_ai_non_cn_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/category-ai-!cn.mrs"
+  },
   // Google
   "google_domain": {
     ...domain_mrs,
@@ -306,8 +328,11 @@ const rules = [
   // 广告拦截
   "RULE-SET,category-ads_domain,GlobalBlock",
 
+  // 境外 AI 服务汇总（须位于 Google 前，使 Gemini 等 Google AI 服务进入 AI）
+  "RULE-SET,category_ai_non_cn_domain,AI",
+
   // Google
-  "RULE-SET,google_domain,Proxy",
+  "RULE-SET,google_domain,Google",
 
   // Microsoft CN
   "RULE-SET,microsoft@cn_domain,GlobalDirect",

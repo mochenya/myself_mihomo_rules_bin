@@ -218,25 +218,43 @@ proxy-groups:
   #   include-all: true
   #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png
 
-  # - name: Google
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       DIRECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png
+  - name: AI
+    type: select
+    <<: *select-base
+    proxies:
+      [
+        Proxy,
+        "🇺🇸 | 美国 US",
+        "🇹🇼 | 台湾 TW",
+        "🇯🇵 | 日本 JP",
+        "🇰🇷 | 韩国 KR",
+        "🇸🇬 | 新加坡 SG",
+        "🇭🇰 | 香港 HK",
+        "🇩🇪 | 德国 DE",
+        "🇫🇷 | 法国 FR",
+        "🇬🇧 | 英国 UK",
+      ]
+    include-all: true
+
+  - name: Google
+    type: select
+    <<: *select-base
+    proxies:
+      [
+        Proxy,
+        "🇭🇰 | 香港 HK",
+        "🇹🇼 | 台湾 TW",
+        "🇯🇵 | 日本 JP",
+        "🇰🇷 | 韩国 KR",
+        "🇺🇸 | 美国 US",
+        "🇩🇪 | 德国 DE",
+        "🇸🇬 | 新加坡 SG",
+        "🇫🇷 | 法国 FR",
+        "🇬🇧 | 英国 UK",
+        DIRECT,
+      ]
+    include-all: true
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png
 
   # - name: OpenAI
   #   type: select
@@ -561,6 +579,12 @@ rule-providers:
     url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"
     path: "./ruleset/meta-rules-dat/geoip/telegram.mrs"
 
+  # 境外 AI 服务汇总
+  category_ai_non_cn_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/category-ai-!cn.mrs"
+
   # Google
   google_domain:
     <<: *domain_mrs
@@ -593,8 +617,11 @@ rules:
   # - RULE-SET,xiaomi-ads_domain,GlobalBlock
   # - RULE-SET,google-ads_domain,GlobalBlock
 
+  # 境外 AI 服务汇总（须位于 Google 前，使 Gemini 等 Google AI 服务进入 AI）
+  - RULE-SET,category_ai_non_cn_domain,AI
+
   # Google
-  - RULE-SET,google_domain,Proxy
+  - RULE-SET,google_domain,Google
 
   # Microsoft CN
   - RULE-SET,microsoft@cn_domain,GlobalDirect
