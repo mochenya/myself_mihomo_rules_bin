@@ -89,7 +89,21 @@ proxy-providers:
     lazy: true # 仅在实际使用该 provider 时再进行测速
     # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     override:
-      additional-prefix: "✈️ | "
+      additional-prefix: "2️⃣ | "
+
+  Airport-Three:
+    url: ""
+    type: http
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 600
+      timeout: 5000
+      lazy: true
+    # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
+    override:
+      additional-prefix: "3️⃣ | "
 
 # ========================
 # 7. DNS 解析设置 (防止 DNS 泄漏)
@@ -148,11 +162,11 @@ select-base: &select-base {}
 
   # url-test/fallback 类型策略组基础配置（自动测速）
 group-base: &group-base
-  interval: 1800 # 降低策略组定时测速频率，减少持续探测开销
+  interval: 300 # 使用中的 AUTO/地区组每 5 分钟重新测速
   lazy: true # 未切换到当前策略组时不主动测速
   timeout: 5000
   url: "https://www.gstatic.com/generate_204"
-  max-failed-times: 3
+  max-failed-times: 2 # 连续失败两次后更积极地触发重新检查
   # hidden: true
 
 # 地区分组基础配置（继承 group-base 的健康检查参数）
@@ -162,6 +176,7 @@ region-base: &region-base
   use:
     - Airport-One
     - Airport-Two
+    - Airport-Three
   tolerance: 50
   exclude-filter: "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置" # 统一过滤广告/信息节点
   # hidden: true
@@ -187,14 +202,19 @@ proxy-groups:
       - "🇬🇧 | 英国 UK"
       - DIRECT
       - REJECT
+    # 仅在主策略组暴露所有订阅原始节点，供手动精确切换。
+    # 业务策略组通过 Proxy 间接使用手动节点，避免绕过地区组健康检查。
     include-all: true
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png
 
   - name: AUTO
     type: url-test
     <<: *group-base
-    use: [Airport-One, Airport-Two]
-    tolerance: 50
+    use:
+      - Airport-One
+      - Airport-Two
+      - Airport-Three
+    tolerance: 50 # 新节点至少快 50ms 才切换；设为 0 可严格追随最低延迟，但更容易抖动
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png
 
   # --- 应用策略组 (针对特定APP分流) ---
@@ -224,6 +244,7 @@ proxy-groups:
     proxies:
       [
         Proxy,
+        AUTO,
         "🇺🇸 | 美国 US",
         "🇹🇼 | 台湾 TW",
         "🇯🇵 | 日本 JP",
@@ -234,7 +255,9 @@ proxy-groups:
         "🇫🇷 | 法国 FR",
         "🇬🇧 | 英国 UK",
       ]
+    # 同时保留自动组、地区组和全部原始节点，支持 AI 独立手动切换。
     include-all: true
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png
 
   - name: Google
     type: select
@@ -242,6 +265,7 @@ proxy-groups:
     proxies:
       [
         Proxy,
+        AUTO,
         "🇭🇰 | 香港 HK",
         "🇹🇼 | 台湾 TW",
         "🇯🇵 | 日本 JP",
@@ -253,6 +277,7 @@ proxy-groups:
         "🇬🇧 | 英国 UK",
         DIRECT,
       ]
+    # 同时保留自动组、地区组和全部原始节点，支持 Google 独立手动切换。
     include-all: true
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png
 

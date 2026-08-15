@@ -1,44 +1,3 @@
-// 多订阅合并，这里添加额外的地址
-// const proxyProviders = {
-//   "p1": {
-//     "type": "http",
-//     // 订阅 链接
-//     "url": "https://baidu.com",
-//     // 自动更新时间 86400(秒) / 3600 = 24小时
-//     "interval": 86400,
-//     "override": {
-//       // 节点名称前缀 p1，用于区别机场节点
-//       "additional-prefix": "p1 |"
-//     }
-//   },
-//   "p2": {
-//     "type": "http",
-//     "url": "https://google.com",
-//     "interval": 86400,
-//     "override": {
-//       "additional-prefix": "p2 |"
-//     }
-//   },
-// }
-
-// 国内DNS服务器（用于代理节点域名解析）
-const domesticNameservers = [
-  "https://223.5.5.5/dns-query",
-  "https://119.29.29.29/dns-query"
-];
-// 直连DNS（国内域名）
-const directNameservers = [
-  "https://dns.alidns.com/dns-query",
-  "https://doh.pub/dns-query"
-];
-// 国外DNS服务器
-const foreignNameservers = [
-  "https://8.8.4.4/dns-query",
-  "https://208.67.222.222/dns-query",
-  "https://77.88.8.8/dns-query",
-  "https://1.1.1.1/dns-query"
-];
-
 // 程序入口
 function main(config) {
   const proxyCount = config?.proxies?.length ?? 0;
@@ -52,35 +11,37 @@ function main(config) {
   // 合并而非覆盖
   config["proxy-providers"] = {
     ...originalProviders,  // 保留原有配置
-    // ...proxyProviders       // 合并新配置（同名则覆盖）
   };
   // 覆盖原配置中DNS配置
   config["dns"] = dnsConfig;
-  // 覆盖原配置中的NTP配置
-  // config["ntp"] = ntpConfig;
   // 覆盖原配置中的代理组
   config["proxy-groups"] = proxyGroupConfig;
   // 覆盖原配置中的规则
   config["rule-providers"] = ruleProviders;
   config["rules"] = rules;
-  //覆盖通用配置
-  // config["mixed-port"] = 7890;
-  // config["allow-lan"] = true;
-  // config["bind-address"] = "*";
-  // config["ipv6"] = true;
-  // config["unified-delay"] = true;
   // 返回修改后的配置
   return config;
 }
 
-// NTP时间同步配置
-const ntpConfig = {
-  "enable": true,
-  "write-to-system": true,
-  "server": "ntp1.aliyun.com",
-  "port": 123,
-  "interval": 30
-};
+// DNS 锚点（可复用的 DNS 服务器地址）
+const directDns = [ // 国内 DNS
+  "https://223.5.5.5/dns-query",
+  "https://doh.pub/dns-query"
+];
+const foreignDns = [ // 国外 DNS
+  "https://1.1.1.1/dns-query",
+  "https://8.8.4.4/dns-query"
+];
+const fallbackDns = [ // 备用 DNS
+  "https://1.1.1.1/dns-query",
+  "https://1.0.0.1/dns-query",
+  "https://8.8.8.8/dns-query",
+  "https://8.8.4.4/dns-query"
+];
+const proxyServerDns = [ // 代理节点域名解析
+  "https://223.5.5.5/dns-query",
+  "https://119.29.29.29/dns-query"
+];
 
 // DNS配置
 const dnsConfig = {
@@ -97,29 +58,43 @@ const dnsConfig = {
     "rule-set:fake_ip_filter_text",
     "rule-set:cn_domain"
   ],
-  "default-nameserver": ["223.5.5.5", "8.8.4.4"], //可修改成自己ISP的DNS
-  "nameserver": [...foreignNameservers],
-  "proxy-server-nameserver": [...domesticNameservers],
-  "direct-nameserver": [...directNameservers],
+  "default-nameserver": ["223.5.5.5", "8.8.4.4"],
+  "nameserver": [...directDns], // 默认 DNS (兜底解析，使用国内 DNS)
+  "fallback": [...fallbackDns], // 备用 DNS (当 nameserver 解析失败时尝试)
+  "proxy-server-nameserver": [...proxyServerDns], // 代理节点域名解析
+  "direct-nameserver": [...directDns], // 直连 DNS (国内域名)
   "nameserver-policy": {
-    "rule-set:cn_domain": [...directNameservers],
-    "rule-set:geolocation-!cn_domain": [...foreignNameservers]
+    "rule-set:cn_domain": [...directDns], // 国内域名 → 国内 DNS
+    "rule-set:geolocation-!cn_domain": [...foreignDns] // 国外域名 → 国外 DNS
   }
 };
 
-// 代理组通用配置
+// 策略组通用配置
 const groupBaseOption = {
   "interval": 300,
-  "timeout": 3000,
+  "lazy": true,
+  "timeout": 5000,
   "url": "https://www.gstatic.com/generate_204",
-  "max-failed-times": 3,
-  "hidden": false
+  "max-failed-times": 2
+};
+
+// select 类型策略组（手动选择，无需健康检查）
+const selectBase = {};
+
+// 地区分组基础配置（继承 groupBaseOption 的健康检查参数）
+const regionBase = {
+  ...groupBaseOption,
+  "type": "url-test",
+  "include-all": true,
+  "tolerance": 50,
+  "exclude-filter": "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
 };
 
 // 代理组规则
 const proxyGroupConfig = [
+  // --- 核心主策略 ---
   {
-    ...groupBaseOption,
+    ...selectBase,
     "name": "Proxy",
     "type": "select",
     "proxies": ["AUTO", "🇭🇰 | 香港 HK", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇺🇸 | 美国 US", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT", "REJECT"],
@@ -134,90 +109,81 @@ const proxyGroupConfig = [
     "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png"
   },
+  // --- 应用策略组 ---
   {
-    ...groupBaseOption,
-    "name": "🇭🇰 | 香港 HK",
-    "type": "url-test",
+    ...selectBase,
+    "name": "AI",
+    "type": "select",
+    "proxies": ["Proxy", "AUTO", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
     "include-all": true,
+    "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png"
+  },
+  {
+    ...selectBase,
+    "name": "Google",
+    "type": "select",
+    "proxies": ["Proxy", "AUTO", "🇭🇰 | 香港 HK", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇺🇸 | 美国 US", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
+    "include-all": true,
+    "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png"
+  },
+  // --- 地区分组 (自动筛选对应地区节点) ---
+  {
+    ...regionBase,
+    "name": "🇭🇰 | 香港 HK",
     "filter": "香港|HK|🇭🇰",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇹🇼 | 台湾 TW",
-    "type": "url-test",
-    "include-all": true,
     "filter": "台湾|TW|🇹🇼",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇯🇵 | 日本 JP",
-    "type": "url-test",
-    "include-all": true,
     "filter": "日本|JP|🇯🇵",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇰🇷 | 韩国 KR",
-    "type": "url-test",
-    "include-all": true,
     "filter": "韩国|KR|🇰🇷",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Korea.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇺🇸 | 美国 US",
-    "type": "url-test",
-    "include-all": true,
     "filter": "美国|US|🇺🇸",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇩🇪 | 德国 DE",
-    "type": "url-test",
-    "include-all": true,
     "filter": "德国|DE|🇩🇪",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇸🇬 | 新加坡 SG",
-    "type": "url-test",
-    "include-all": true,
     "filter": "新加坡|SG|🇸🇬",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇫🇷 | 法国 FR",
-    "type": "url-test",
-    "include-all": true,
     "filter": "法国|FR|🇫🇷",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/France.png"
   },
   {
-    ...groupBaseOption,
+    ...regionBase,
     "name": "🇬🇧 | 英国 UK",
-    "type": "url-test",
-    "include-all": true,
     "filter": "英国|GB|🇬🇧",
-    "exclude-filter": "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置",
-    "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png"
   },
+  // --- 漏网之鱼与拦截分组 ---
   {
-    ...groupBaseOption,
+    ...selectBase,
     "name": "GlobalDirect",
     "type": "select",
     "proxies": ["DIRECT", "Proxy"],
@@ -225,7 +191,7 @@ const proxyGroupConfig = [
     "icon": "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/link.svg"
   },
   {
-    ...groupBaseOption,
+    ...selectBase,
     "name": "GlobalBlock",
     "type": "select",
     "proxies": ["REJECT", "DIRECT"],
@@ -242,6 +208,14 @@ const ip_mrs = {
   "proxy": "Proxy"
 };
 
+const domain_yaml = {
+  "type": "http",
+  "behavior": "domain",
+  "format": "yaml",
+  "interval": 86400,
+  "proxy": "Proxy"
+};
+
 const domain_mrs = {
   "type": "http",
   "behavior": "domain",
@@ -254,14 +228,6 @@ const domain_text = {
   "type": "http",
   "behavior": "domain",
   "format": "text",
-  "interval": 86400,
-  "proxy": "Proxy"
-};
-
-const domain_yaml = {
-  "type": "http",
-  "behavior": "domain",
-  "format": "yaml",
   "interval": 86400,
   "proxy": "Proxy"
 };
@@ -315,30 +281,16 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tld-cn.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/tld-cn.mrs"
   },
-  "xiaomi-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
-  },
-  "bytedance-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bytedance-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/bytedance-ads.mrs"
-  },
-  "baidu-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/baidu-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/baidu-ads.mrs"
-  },
-  "google-ads_domain": {
-    ...domain_mrs,
-    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-ads.mrs",
-    "path": "./ruleset/meta-rules-dat/geosite/google-ads.mrs"
-  },
   "telegram_ip": {
     ...ip_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs",
     "path": "./ruleset/meta-rules-dat/geoip/telegram.mrs"
+  },
+  // 境外 AI 服务汇总
+  "category_ai_non_cn_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/category-ai-!cn.mrs"
   },
   // Google
   "google_domain": {
@@ -360,7 +312,7 @@ const ruleProviders = {
   }
 };
 
-// 规则（来自 clash_no_specialApp.yaml 第11部分）
+// 路由规则
 const rules = [
   // 本地绕行
   "RULE-SET,private_ip,GlobalDirect,no-resolve",
@@ -368,22 +320,19 @@ const rules = [
   "RULE-SET,private_domain,GlobalDirect",
   // "RULE-SET,applications,GlobalDirect",
 
-  // 广告拦截
-  "RULE-SET,xiaomi-ads_domain,GlobalBlock",
-  "RULE-SET,bytedance-ads_domain,GlobalBlock",
-  "RULE-SET,baidu-ads_domain,GlobalBlock",
-  "RULE-SET,google-ads_domain,GlobalBlock",
+  // 境外 AI 服务汇总（须位于 Google 前，使 Gemini 等 Google AI 服务进入 AI）
+  "RULE-SET,category_ai_non_cn_domain,AI",
 
   // Google
-  "RULE-SET,google_domain,Proxy",
+  "RULE-SET,google_domain,Google",
 
   // Microsoft CN
   "RULE-SET,microsoft@cn_domain,GlobalDirect",
 
   // 地区分流与兜底
-  "RULE-SET,geolocation-!cn_domain,Proxy",
-  "RULE-SET,tld-cn_domain,GlobalDirect",
   "RULE-SET,cn_domain,GlobalDirect",
+  "RULE-SET,tld-cn_domain,GlobalDirect",
+  "RULE-SET,geolocation-!cn_domain,Proxy",
 
   // 最终 IP 规则
   "RULE-SET,telegram_ip,Proxy,no-resolve",

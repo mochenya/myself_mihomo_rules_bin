@@ -71,11 +71,11 @@ const dnsConfig = {
 
 // 策略组通用配置
 const groupBaseOption = {
-  "interval": 1800,
+  "interval": 300,
   "lazy": true,
   "timeout": 5000,
   "url": "https://www.gstatic.com/generate_204",
-  "max-failed-times": 3
+  "max-failed-times": 2
 };
 
 // select 类型策略组（手动选择，无需健康检查）
@@ -114,14 +114,15 @@ const proxyGroupConfig = [
     ...selectBase,
     "name": "AI",
     "type": "select",
-    "proxies": ["Proxy", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
-    "include-all": true
+    "proxies": ["Proxy", "AUTO", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
+    "include-all": true,
+    "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png"
   },
   {
     ...selectBase,
     "name": "Google",
     "type": "select",
-    "proxies": ["Proxy", "🇭🇰 | 香港 HK", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇺🇸 | 美国 US", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
+    "proxies": ["Proxy", "AUTO", "🇭🇰 | 香港 HK", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇺🇸 | 美国 US", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
     "include-all": true,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png"
   },
@@ -280,7 +281,7 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tld-cn.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/tld-cn.mrs"
   },
-  // 广告拦截（JS 独有）
+  // 广告拦截
   "category-ads_domain": {
     ...domain_mrs,
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads@ads.mrs",
