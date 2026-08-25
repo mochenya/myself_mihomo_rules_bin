@@ -28,15 +28,15 @@ const directDns = [ // 国内 DNS
   "https://223.5.5.5/dns-query",
   "https://doh.pub/dns-query"
 ];
-const foreignDns = [ // 国外 DNS
-  "https://1.1.1.1/dns-query",
-  "https://8.8.4.4/dns-query"
+const foreignDns = [ // 国外 DNS（通过 Proxy）
+  "https://1.1.1.1/dns-query#Proxy",
+  "https://8.8.4.4/dns-query#Proxy"
 ];
-const fallbackDns = [ // 备用 DNS
-  "https://1.1.1.1/dns-query",
-  "https://1.0.0.1/dns-query",
-  "https://8.8.8.8/dns-query",
-  "https://8.8.4.4/dns-query"
+const fallbackDns = [ // 备用境外 DNS（通过 Proxy）
+  "https://1.1.1.1/dns-query#Proxy",
+  "https://1.0.0.1/dns-query#Proxy",
+  "https://8.8.8.8/dns-query#Proxy",
+  "https://8.8.4.4/dns-query#Proxy"
 ];
 const proxyServerDns = [ // 代理节点域名解析
   "https://223.5.5.5/dns-query",
@@ -58,14 +58,14 @@ const dnsConfig = {
     "rule-set:fake_ip_filter_text",
     "rule-set:cn_domain"
   ],
-  "default-nameserver": ["223.5.5.5", "8.8.4.4"],
+  "default-nameserver": ["223.5.5.5", "119.29.29.29"],
   "nameserver": [...directDns], // 默认 DNS (兜底解析，使用国内 DNS)
-  "fallback": [...fallbackDns], // 备用 DNS (当 nameserver 解析失败时尝试)
+  "fallback": [...fallbackDns], // 备用境外 DNS（通过 Proxy）
   "proxy-server-nameserver": [...proxyServerDns], // 代理节点域名解析
   "direct-nameserver": [...directDns], // 直连 DNS (国内域名)
   "nameserver-policy": {
     "rule-set:cn_domain": [...directDns], // 国内域名 → 国内 DNS
-    "rule-set:geolocation-!cn_domain": [...foreignDns] // 国外域名 → 国外 DNS
+    "rule-set:geolocation-!cn_domain": [...foreignDns] // 国外域名 → 国外 DNS（通过 Proxy）
   }
 };
 

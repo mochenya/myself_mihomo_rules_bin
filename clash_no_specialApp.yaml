@@ -122,22 +122,21 @@ dns:
     - "rule-set:cn_domain"
   default-nameserver: # 引导 DNS (用于解析 DoH 域名)
     - 223.5.5.5
-    - 8.8.4.4
+    - 119.29.29.29
   nameserver: # 默认 DNS (兜底解析，用于不在 nameserver-policy 中的域名)
     # 使用国内 DNS 作为兜底，确保未分类域名获得准确的国内解析
     # 国外域名已由 nameserver-policy 中的 geolocation-!cn_domain 接管
     - https://223.5.5.5/dns-query
     - https://doh.pub/dns-query
-  fallback: # 备用 DNS (当 nameserver 解析失败时尝试)
-    # 简单兜底：nameserver 解析失败时回退到国外 DNS
-    # 不使用 fallback-filter 避免增加复杂度
-    # 指定 #Proxy 让 DNS 查询走代理，隐藏真实 IP
+  fallback: # 备用境外 DNS（明确通过 Proxy 连接）
+    # 未命中 nameserver-policy 的域名与 nameserver 并发查询，按 fallback-filter 选择结果
+    # 当前通过 #Proxy 让 DNS 查询走代理，避免直连境外 DNS
     # Cloudflare
-    - "https://1.1.1.1/dns-query"
-    - "https://1.0.0.1/dns-query"
+    - "https://1.1.1.1/dns-query#Proxy"
+    - "https://1.0.0.1/dns-query#Proxy"
     # Google
-    - "https://8.8.8.8/dns-query"
-    - "https://8.8.4.4/dns-query"
+    - "https://8.8.8.8/dns-query#Proxy"
+    - "https://8.8.4.4/dns-query#Proxy"
   proxy-server-nameserver: # 代理节点本身的域名解析 DNS（使用 IP 避免域名解析循环依赖）
     - https://223.5.5.5/dns-query
     - https://119.29.29.29/dns-query
@@ -149,8 +148,8 @@ dns:
       - https://223.5.5.5/dns-query
       - https://doh.pub/dns-query
     "rule-set:geolocation-!cn_domain": # 国外域名 → 国外 DNS
-      - https://1.1.1.1/dns-query
-      - https://8.8.4.4/dns-query
+      - "https://1.1.1.1/dns-query#Proxy"
+      - "https://8.8.4.4/dns-query#Proxy"
 
 # ========================
 # 8. 锚点配置 (配置模板，供下方引用)
@@ -177,7 +176,7 @@ region-base: &region-base
     - Airport-Two
     - Airport-Three
   tolerance: 50
-  exclude-filter: "(?i)Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置" # 统一过滤广告/信息节点
+  exclude-filter: "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置" # 统一过滤广告/信息节点
   # hidden: true
 
 # ========================
@@ -254,7 +253,6 @@ proxy-groups:
         "🇫🇷 | 法国 FR",
         "🇬🇧 | 英国 UK",
       ]
-    # 同时保留自动组、地区组和全部原始节点，支持 AI 独立手动切换。
     include-all: true
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png
 
@@ -276,7 +274,6 @@ proxy-groups:
         "🇬🇧 | 英国 UK",
         DIRECT,
       ]
-    # 同时保留自动组、地区组和全部原始节点，支持 Google 独立手动切换。
     include-all: true
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png
 
@@ -445,47 +442,47 @@ proxy-groups:
   # --- 地区分组 (自动筛选对应地区节点) ---
   - name: "🇭🇰 | 香港 HK"
     <<: *region-base
-    filter: "(?i)香港|HK|🇭🇰"
+    filter: "香港|HK|🇭🇰"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png
 
   - name: "🇹🇼 | 台湾 TW"
     <<: *region-base
-    filter: "(?i)台湾|TW|🇹🇼"
+    filter: "台湾|TW|🇹🇼"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png
 
   - name: "🇯🇵 | 日本 JP"
     <<: *region-base
-    filter: "(?i)日本|JP|🇯🇵"
+    filter: "日本|JP|🇯🇵"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png
 
   - name: "🇰🇷 | 韩国 KR"
     <<: *region-base
-    filter: "(?i)韩国|KR|🇰🇷"
+    filter: "韩国|KR|🇰🇷"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Korea.png
 
   - name: "🇺🇸 | 美国 US"
     <<: *region-base
-    filter: "(?i)美国|US|🇺🇸"
+    filter: "美国|US|🇺🇸"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png
 
   - name: "🇩🇪 | 德国 DE"
     <<: *region-base
-    filter: "(?i)德国|DE|🇩🇪"
+    filter: "德国|DE|🇩🇪"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany.png
 
   - name: "🇸🇬 | 新加坡 SG"
     <<: *region-base
-    filter: "(?i)新加坡|SG|🇸🇬"
+    filter: "新加坡|SG|🇸🇬"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png
 
   - name: "🇫🇷 | 法国 FR"
     <<: *region-base
-    filter: "(?i)法国|FR|🇫🇷"
+    filter: "法国|FR|🇫🇷"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/France.png
 
   - name: "🇬🇧 | 英国 UK"
     <<: *region-base
-    filter: "(?i)英国|GB|🇬🇧"
+    filter: "英国|GB|🇬🇧"
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png
 
   # --- 漏网之鱼与拦截分组 ---
