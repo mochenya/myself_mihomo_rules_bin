@@ -87,7 +87,7 @@ const regionBase = {
   "type": "url-test",
   "include-all": true,
   "tolerance": 50,
-  "exclude-filter": "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
+  "exclude-filter": "(?i)Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
 };
 
 // 代理组规则
@@ -130,55 +130,55 @@ const proxyGroupConfig = [
   {
     ...regionBase,
     "name": "🇭🇰 | 香港 HK",
-    "filter": "香港|HK|🇭🇰",
+    "filter": "(?i)香港|HK|🇭🇰",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png"
   },
   {
     ...regionBase,
     "name": "🇹🇼 | 台湾 TW",
-    "filter": "台湾|TW|🇹🇼",
+    "filter": "(?i)台湾|TW|🇹🇼",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png"
   },
   {
     ...regionBase,
     "name": "🇯🇵 | 日本 JP",
-    "filter": "日本|JP|🇯🇵",
+    "filter": "(?i)日本|JP|🇯🇵",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png"
   },
   {
     ...regionBase,
     "name": "🇰🇷 | 韩国 KR",
-    "filter": "韩国|KR|🇰🇷",
+    "filter": "(?i)韩国|KR|🇰🇷",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Korea.png"
   },
   {
     ...regionBase,
     "name": "🇺🇸 | 美国 US",
-    "filter": "美国|US|🇺🇸",
+    "filter": "(?i)美国|US|🇺🇸",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png"
   },
   {
     ...regionBase,
     "name": "🇩🇪 | 德国 DE",
-    "filter": "德国|DE|🇩🇪",
+    "filter": "(?i)德国|DE|🇩🇪",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany.png"
   },
   {
     ...regionBase,
     "name": "🇸🇬 | 新加坡 SG",
-    "filter": "新加坡|SG|🇸🇬",
+    "filter": "(?i)新加坡|SG|🇸🇬",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png"
   },
   {
     ...regionBase,
     "name": "🇫🇷 | 法国 FR",
-    "filter": "法国|FR|🇫🇷",
+    "filter": "(?i)法国|FR|🇫🇷",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/France.png"
   },
   {
     ...regionBase,
     "name": "🇬🇧 | 英国 UK",
-    "filter": "英国|GB|🇬🇧",
+    "filter": "(?i)英国|GB|🇬🇧",
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png"
   },
   // --- 漏网之鱼与拦截分组 ---
