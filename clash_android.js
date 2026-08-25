@@ -120,6 +120,14 @@ const proxyGroupConfig = [
   },
   {
     ...selectBase,
+    "name": "Gemini",
+    "type": "select",
+    "proxies": ["Proxy", "AUTO", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
+    "include-all": true,
+    "icon": "https://cdn.jsdelivr.net/gh/guaishouxiaoqi/icons@master/Color/Gemini.png"
+  },
+  {
+    ...selectBase,
     "name": "Google",
     "type": "select",
     "proxies": ["Proxy", "AUTO", "🇭🇰 | 香港 HK", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇺🇸 | 美国 US", "🇩🇪 | 德国 DE", "🇸🇬 | 新加坡 SG", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK", "DIRECT"],
@@ -292,6 +300,12 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/category-ai-!cn.mrs"
   },
+  // Gemini
+  "google_gemini": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-gemini.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/google-gemini.mrs"
+  },
   // Google
   "google_domain": {
     ...domain_mrs,
@@ -320,7 +334,10 @@ const rules = [
   "RULE-SET,private_domain,GlobalDirect",
   // "RULE-SET,applications,GlobalDirect",
 
-  // 境外 AI 服务汇总（须位于 Google 前，使 Gemini 等 Google AI 服务进入 AI）
+  // Gemini 独立分流，须位于通用 AI 和 Google 前
+  "RULE-SET,google_gemini,Gemini",
+
+  // 境外 AI 服务汇总，须位于 Google 前
   "RULE-SET,category_ai_non_cn_domain,AI",
 
   // Google
