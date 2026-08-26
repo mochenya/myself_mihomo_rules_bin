@@ -71,8 +71,9 @@ proxy-providers:
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 1800 # 降低节点探活频率，减少后台测速开销
-      lazy: true # 仅在实际使用该 provider 时再进行测速
+      interval: 600 # 每 10 分钟更新一次全量节点健康状态
+      timeout: 5000
+      lazy: true # 仅在该 provider 的节点被使用时执行健康检查
     # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     # override:
     #   additional-prefix: "✈️ |"
@@ -84,8 +85,9 @@ proxy-providers:
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 1800 # 降低节点探活频率，减少后台测速开销
-      lazy: true # 仅在实际使用该 provider 时再进行测速
+      interval: 600 # 每 10 分钟更新一次全量节点健康状态
+      timeout: 5000
+      lazy: true # 仅在该 provider 的节点被使用时执行健康检查
     # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
     override:
       additional-prefix: "2️⃣ | "
