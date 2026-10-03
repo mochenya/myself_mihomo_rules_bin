@@ -8,4 +8,5 @@ payload:
   - "+.polymas.com"
   # 千问AI平台
   - "+.qianwenai.com"
-  # 代理 IP 平台
+  # 高德地图
+  - "+.aliapp.org"
