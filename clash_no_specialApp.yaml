@@ -63,95 +63,73 @@ ntp:
 # ========================
 # 6. 代理集合 (机场订阅来源)
 # ========================
+provider-base: &provider-base
+  type: http
+  interval: 86400
+  exclude-filter: "(?i)剩余流量|到期时间|套餐到期|订阅更新"
+  health-check:
+    enable: true
+    url: https://www.gstatic.com/generate_204
+    expected-status: 204
+    interval: 600 # 使用中的订阅集合每 10 分钟检查节点健康状态
+    timeout: 5000
+    lazy: true # 订阅集合未被使用时跳过周期检查，并非仅检查所选节点
+
 proxy-providers:
   Airport-One:
+    <<: *provider-base
     url: ""
-    type: http
-    interval: 86400
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 600 # 每 10 分钟更新一次全量节点健康状态
-      timeout: 5000
-      lazy: true # 仅在该 provider 的节点被使用时执行健康检查
-    # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
-    # override:
-    #   additional-prefix: "✈️ |"
+    path: "./providers/airport-one.yaml"
+    override:
+      additional-prefix: "[A1] "
 
   Airport-Two:
+    <<: *provider-base
     url: ""
-    type: http
-    interval: 86400
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 600 # 每 10 分钟更新一次全量节点健康状态
-      timeout: 5000
-      lazy: true # 仅在该 provider 的节点被使用时执行健康检查
-    # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
+    path: "./providers/airport-two.yaml"
     override:
-      additional-prefix: "2️⃣ | "
+      additional-prefix: "[A2] "
 
   Airport-Three:
+    <<: *provider-base
     url: ""
-    type: http
-    interval: 86400
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 600
-      timeout: 5000
-      lazy: true
-    # exclude-filter: "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置"
+    path: "./providers/airport-three.yaml"
     override:
-      additional-prefix: "3️⃣ | "
+      additional-prefix: "[A3] "
 
 # ========================
 # 7. DNS 解析设置 (防止 DNS 泄漏)
 # ========================
 dns:
   enable: true
-  listen: "0.0.0.0:1053"
+  listen: "127.0.0.1:1053"
   ipv6: false
   prefer-h3: false
-  respect-rules: true
-  use-system-hosts: false
+  respect-rules: false # 下方 DNS 上游均通过 #DIRECT / #Proxy 显式指定出口
+  use-system-hosts: true
   cache-algorithm: arc
   enhanced-mode: fake-ip # 增强模式: Fake-IP
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter: # Fake-IP 过滤列表 (直接返回真实IP的域名)
     - "rule-set:fake_ip_filter_text"
+    - "rule-set:private_domain"
     - "rule-set:cn_domain"
   default-nameserver: # 引导 DNS (用于解析 DoH 域名)
-    - 223.5.5.5
-    - 119.29.29.29
-  nameserver: # 默认 DNS (兜底解析，用于不在 nameserver-policy 中的域名)
-    # 使用国内 DNS 作为兜底，确保未分类域名获得准确的国内解析
-    # 国外域名已由 nameserver-policy 中的 geolocation-!cn_domain 接管
-    - https://223.5.5.5/dns-query
-    - https://doh.pub/dns-query
-  fallback: # 备用境外 DNS（明确通过 Proxy 连接）
-    # 未命中 nameserver-policy 的域名与 nameserver 并发查询，按 fallback-filter 选择结果
-    # 当前通过 #Proxy 让 DNS 查询走代理，避免直连境外 DNS
-    # Cloudflare
+    - "tls://223.5.5.5#DIRECT"
+  nameserver: # 未分类域名由境外 DNS 兜底，出口跟随主策略组 Proxy
     - "https://1.1.1.1/dns-query#Proxy"
-    - "https://1.0.0.1/dns-query#Proxy"
-    # Google
     - "https://8.8.8.8/dns-query#Proxy"
-    - "https://8.8.4.4/dns-query#Proxy"
-  proxy-server-nameserver: # 代理节点本身的域名解析 DNS（使用 IP 避免域名解析循环依赖）
-    - https://223.5.5.5/dns-query
-    - https://119.29.29.29/dns-query
-  direct-nameserver: # 直连 DNS (用于国内域名)
-    - https://223.5.5.5/dns-query
-    - https://doh.pub/dns-query
-  nameserver-policy: # 指定域名走特定 DNS (优先级高于 nameserver/fallback)
-    "rule-set:cn_domain": # 国内域名 → 国内 DNS
-      - https://223.5.5.5/dns-query
-      - https://doh.pub/dns-query
-    "rule-set:geolocation-!cn_domain": # 国外域名 → 国外 DNS
-      - "https://1.1.1.1/dns-query#Proxy"
-      - "https://8.8.4.4/dns-query#Proxy"
+  proxy-server-nameserver: # 独立直连解析代理节点域名，避免循环依赖
+    - "https://223.5.5.5/dns-query#DIRECT"
+    - "https://doh.pub/dns-query#DIRECT"
+  direct-nameserver: # DIRECT 出站域名解析
+    - "https://223.5.5.5/dns-query#DIRECT"
+    - "https://doh.pub/dns-query#DIRECT"
+  direct-nameserver-follow-policy: false
+  nameserver-policy: # 国内及自定义直连域名使用国内 DNS
+    "rule-set:cn_domain,tld-cn_domain,microsoft@cn_domain,filter":
+      - "https://223.5.5.5/dns-query#DIRECT"
+      - "https://doh.pub/dns-query#DIRECT"
 
 # ========================
 # 8. 锚点配置 (配置模板，供下方引用)
@@ -162,11 +140,12 @@ select-base: &select-base {}
 
   # url-test/fallback 类型策略组基础配置（自动测速）
 group-base: &group-base
-  interval: 300 # 使用中的 AUTO/地区组每 5 分钟重新测速
+  interval: 600 # 与 provider 保持一致，同 URL 的订阅节点检查由 provider 复用
   lazy: true # 未切换到当前策略组时不主动测速
   timeout: 5000
   url: "https://www.gstatic.com/generate_204"
-  max-failed-times: 2 # 连续失败两次后更积极地触发重新检查
+  expected-status: 204
+  max-failed-times: 2 # 连接失败达到阈值时触发强制健康检查
   # hidden: true
 
 # 地区分组基础配置（继承 group-base 的健康检查参数）
@@ -178,7 +157,7 @@ region-base: &region-base
     - Airport-Two
     - Airport-Three
   tolerance: 50
-  exclude-filter: "Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置" # 统一过滤广告/信息节点
+  empty-fallback: REJECT # 地区组没有候选节点时明确拒绝，避免空组回退直连
   # hidden: true
 
 # ========================
