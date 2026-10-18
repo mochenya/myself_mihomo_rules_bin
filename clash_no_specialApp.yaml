@@ -4,7 +4,7 @@
 mixed-port: 7890
 allow-lan: false
 bind-address: "*"
-ipv6: false
+ipv6: true
 unified-delay: true
 tcp-concurrent: true
 log-level: info
@@ -103,7 +103,7 @@ proxy-providers:
 dns:
   enable: true
   listen: "127.0.0.1:1053"
-  ipv6: false
+  ipv6: true
   prefer-h3: false
   respect-rules: false # 下方 DNS 上游均通过 #DIRECT / #Proxy 显式指定出口
   use-system-hosts: true
