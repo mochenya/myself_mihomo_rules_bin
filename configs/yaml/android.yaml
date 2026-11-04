@@ -2,7 +2,7 @@
 mixed-port: 7890
 allow-lan: false
 bind-address: "*"
-ipv6: true
+ipv6: false # 关闭 IPv6
 unified-delay: true
 tcp-concurrent: true
 log-level: info
@@ -61,13 +61,14 @@ proxy-providers:
 dns:
   enable: true
   listen: "127.0.0.1:1053"
-  ipv6: true
+  ipv6: false # 同步关闭 DNS AAAA 解析
   prefer-h3: false
   respect-rules: false # 下方 DNS 上游均通过 #DIRECT / #Proxy 显式指定出口
   use-system-hosts: true
   cache-algorithm: arc
   enhanced-mode: fake-ip # 增强模式: Fake-IP
   fake-ip-range: 198.18.0.1/16
+  # fake-ip-range6: fdfe:dcba:9876::1/64 # 启用 IPv6 时再取消注释
   fake-ip-filter: # Fake-IP 过滤列表 (直接返回真实IP的域名)
     - "rule-set:fake_ip_filter_text"
     - "rule-set:private_domain"
@@ -610,9 +611,9 @@ rule-providers:
 # 路由规则（从上到下匹配）
 rules:
   # 本地绕行
-  - RULE-SET,private_ip,GlobalDirect,no-resolve
+  - RULE-SET,private_ip,DIRECT,no-resolve
   - RULE-SET,filter,GlobalDirect
-  - RULE-SET,private_domain,GlobalDirect
+  - RULE-SET,private_domain,DIRECT
 
   # 广告拦截
   - RULE-SET,category-ads_domain,GlobalBlock

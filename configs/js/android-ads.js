@@ -60,7 +60,12 @@ const dnsConfig = {
   "cache-algorithm": "arc",
   "enhanced-mode": "fake-ip",
   "fake-ip-range": "198.18.0.1/16",
-  "fake-ip-filter": ["rule-set:fake_ip_filter_text", "rule-set:cn_domain"],
+  // "fake-ip-range6": "fdfe:dcba:9876::1/64", // 启用 IPv6 时再取消注释
+  "fake-ip-filter": [
+    "rule-set:fake_ip_filter_text",
+    "rule-set:private_domain",
+    "rule-set:cn_domain",
+  ],
   "default-nameserver": ["223.5.5.5", "119.29.29.29"],
   nameserver: [...directDns], // 默认 DNS (兜底解析，使用国内 DNS)
   fallback: [...fallbackDns], // 备用境外 DNS（通过 Proxy）
@@ -414,9 +419,9 @@ const ruleProviders = {
 // 路由规则
 const rules = [
   // 本地绕行
-  "RULE-SET,private_ip,GlobalDirect,no-resolve",
+  "RULE-SET,private_ip,DIRECT,no-resolve",
   "RULE-SET,filter,GlobalDirect",
-  "RULE-SET,private_domain,GlobalDirect",
+  "RULE-SET,private_domain,DIRECT",
   // "RULE-SET,applications,GlobalDirect",
 
   // 广告拦截
