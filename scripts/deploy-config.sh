@@ -1,7 +1,8 @@
 #!/bin/bash
 # 部署 mihomo 配置文件并重启服务
 
-# 配置目录（使用绝对路径，避免 sudo 导致 ~ 展开错误）
+# 项目根目录与配置目录
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG_DIR="/home/mochen/.mihomo"
 
 # 停止服务
@@ -10,8 +11,7 @@ systemctl stop mihomo.service
 
 # 复制配置文件
 echo "复制配置文件到 $CONFIG_DIR/..."
-cp clash.yaml "$CONFIG_DIR/clash.yaml"
-cp clash_no_specialApp_my.yaml "$CONFIG_DIR/clash_no_specialApp.yaml"
+cp "$PROJECT_DIR/configs/yaml/desktop.deploy.yaml" "$CONFIG_DIR/clash_no_specialApp.yaml"
 
 # 启动服务
 echo "启动 mihomo.service..."

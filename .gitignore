@@ -1,6 +1,5 @@
 mihomo/*
 !mihomo/CLAUDE.md
-singbox/*
 
 # 自用
-*my.*
+configs/yaml/*.deploy.yaml
