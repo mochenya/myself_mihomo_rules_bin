@@ -1,4 +1,4 @@
-// 程序入口
+// 客户端调用入口
 function main(config) {
   const proxyCount = config?.proxies?.length ?? 0;
   const originalProviders = config?.["proxy-providers"] || {};
@@ -11,22 +11,21 @@ function main(config) {
     throw new Error("配置文件中未找到任何代理");
   }
 
-  // 合并而非覆盖
+  // 保留订阅中的代理提供者
   config["proxy-providers"] = {
-    ...originalProviders, // 保留原有配置
+    ...originalProviders,
   };
-  // 覆盖原配置中DNS配置
+  // 使用自定义 DNS 配置
   config["dns"] = dnsConfig;
-  // 覆盖原配置中的代理组
+  // 使用自定义策略组
   config["proxy-groups"] = proxyGroupConfig;
-  // 覆盖原配置中的规则
+  // 使用自定义规则集与路由规则
   config["rule-providers"] = ruleProviders;
   config["rules"] = rules;
-  // 返回修改后的配置
   return config;
 }
 
-// DNS 锚点（可复用的 DNS 服务器地址）
+// DNS 服务器地址
 const directDns = [
   // 国内 DNS
   "https://223.5.5.5/dns-query",
@@ -50,7 +49,7 @@ const proxyServerDns = [
   "https://119.29.29.29/dns-query",
 ];
 
-// DNS配置
+// DNS 配置
 const dnsConfig = {
   enable: true,
   listen: "0.0.0.0:1053",
@@ -94,9 +93,9 @@ const regionBase = {
   "exclude-filter": "(?i)Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置",
 };
 
-// 代理组规则
+// 策略组
 const proxyGroupConfig = [
-  // --- 核心主策略 ---
+  // 主策略组
   {
     ...selectBase,
     name: "Proxy",
@@ -126,7 +125,7 @@ const proxyGroupConfig = [
     tolerance: 50,
     icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png",
   },
-  // --- 应用策略组 ---
+  // 应用策略组
   {
     ...selectBase,
     name: "AI",
@@ -208,7 +207,7 @@ const proxyGroupConfig = [
     "include-all": true,
     icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png",
   },
-  // --- 地区分组 (自动筛选对应地区节点) ---
+  // 地区策略组（按节点名称筛选）
   {
     ...regionBase,
     name: "🇭🇰 | 香港 HK",
@@ -263,7 +262,7 @@ const proxyGroupConfig = [
     filter: "(?i)英国|GB|🇬🇧",
     icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png",
   },
-  // --- 漏网之鱼与拦截分组 ---
+  // 直连与拦截策略组
   {
     ...selectBase,
     name: "GlobalDirect",
@@ -417,7 +416,7 @@ const rules = [
   // Gemini 独立分流，须位于通用 AI 和 Google 前
   "RULE-SET,google_gemini,Gemini",
 
-  // Claude 独立分流
+  // Claude 独立分流，须位于通用 AI 前
   "RULE-SET,anthropic_domain,Claude",
 
   // 境外 AI 服务汇总，须位于 Google 前
