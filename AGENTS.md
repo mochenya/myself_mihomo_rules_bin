@@ -4,7 +4,7 @@
 
 本仓库维护 Mihomo 的 YAML 配置、Clash 客户端 JS 覆写脚本和辅助脚本：
 
-- `configs/yaml/`：`desktop.yaml`、`android.yaml` 是公开配置；`*.deploy.yaml` 是不纳入 Git 的个人部署配置。
+- `configs/yaml/`：包含桌面、安卓和安卓 Tailscale 公开配置；`*.deploy.yaml` 是不纳入 Git 的个人部署配置。
 - `configs/js/`：安卓客户端覆写脚本；`android-ads.js` 额外启用广告拦截。
 - `providers/filter.yaml`：自用域名过滤规则。
 - `scripts/`：本机部署与上游参考资料下载脚本。
@@ -21,7 +21,7 @@
 仓库没有构建步骤、已配置的测试框架或覆盖率要求。根据改动运行适当检查：
 
 ```bash
-prettier --check configs/yaml/desktop.yaml configs/yaml/android.yaml 'configs/js/*.js' providers/filter.yaml
+prettier --check 'configs/yaml/*.yaml' 'configs/js/*.js' providers/filter.yaml
 bash -n scripts/*.sh
 node --check configs/js/android.js
 node --check configs/js/android-ads.js
