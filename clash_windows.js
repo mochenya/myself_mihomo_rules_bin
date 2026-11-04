@@ -109,6 +109,14 @@ const proxyGroupConfig = [
     "tolerance": 50,
     "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png"
   },
+  {
+    ...selectBase,
+    "name": "Claude",
+    "type": "select",
+    "proxies": ["Proxy", "AUTO", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
+    "include-all": true,
+    "icon": "https://fastly.jsdelivr.net/gh/ke1ewang/Qi@master/Claude.png"
+  },
   // --- 地区分组 (自动筛选对应地区节点) ---
   {
     ...regionBase,
@@ -275,6 +283,12 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs",
     "path": "./ruleset/meta-rules-dat/geoip/telegram.mrs"
   },
+  // Claude / Anthropic
+  "anthropic_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/anthropic.mrs"
+  },
   // Google
   "google_domain": {
     ...domain_mrs,
@@ -305,6 +319,9 @@ const rules = [
 
   // 广告拦截
   "RULE-SET,category-ads_domain,GlobalBlock",
+
+  // Claude 独立分流
+  "RULE-SET,anthropic_domain,Claude",
 
   // Google
   "RULE-SET,google_domain,Proxy",

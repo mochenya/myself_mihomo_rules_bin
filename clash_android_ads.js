@@ -120,6 +120,14 @@ const proxyGroupConfig = [
   },
   {
     ...selectBase,
+    "name": "Claude",
+    "type": "select",
+    "proxies": ["Proxy", "AUTO", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
+    "include-all": true,
+    "icon": "https://fastly.jsdelivr.net/gh/ke1ewang/Qi@master/Claude.png"
+  },
+  {
+    ...selectBase,
     "name": "Gemini",
     "type": "select",
     "proxies": ["Proxy", "AUTO", "🇺🇸 | 美国 US", "🇹🇼 | 台湾 TW", "🇯🇵 | 日本 JP", "🇰🇷 | 韩国 KR", "🇸🇬 | 新加坡 SG", "🇭🇰 | 香港 HK", "🇩🇪 | 德国 DE", "🇫🇷 | 法国 FR", "🇬🇧 | 英国 UK"],
@@ -312,6 +320,12 @@ const ruleProviders = {
     "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-gemini.mrs",
     "path": "./ruleset/meta-rules-dat/geosite/google-gemini.mrs"
   },
+  // Claude / Anthropic
+  "anthropic_domain": {
+    ...domain_mrs,
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs",
+    "path": "./ruleset/meta-rules-dat/geosite/anthropic.mrs"
+  },
   // Google
   "google_domain": {
     ...domain_mrs,
@@ -345,6 +359,9 @@ const rules = [
 
   // Gemini 独立分流，须位于通用 AI 和 Google 前
   "RULE-SET,google_gemini,Gemini",
+
+  // Claude 独立分流
+  "RULE-SET,anthropic_domain,Claude",
 
   // 境外 AI 服务汇总，须位于 Google 前
   "RULE-SET,category_ai_non_cn_domain,AI",

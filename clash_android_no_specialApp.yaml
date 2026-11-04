@@ -203,6 +203,26 @@ proxy-groups:
     include-all: true
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png
 
+  - name: Claude
+    type: select
+    <<: *select-base
+    proxies:
+      [
+        Proxy,
+        AUTO,
+        "🇺🇸 | 美国 US",
+        "🇹🇼 | 台湾 TW",
+        "🇯🇵 | 日本 JP",
+        "🇰🇷 | 韩国 KR",
+        "🇸🇬 | 新加坡 SG",
+        "🇭🇰 | 香港 HK",
+        "🇩🇪 | 德国 DE",
+        "🇫🇷 | 法国 FR",
+        "🇬🇧 | 英国 UK",
+      ]
+    include-all: true
+    icon: https://fastly.jsdelivr.net/gh/ke1ewang/Qi@master/Claude.png
+
   - name: Gemini
     type: select
     <<: *select-base
@@ -568,6 +588,12 @@ rule-providers:
     url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"
     path: "./ruleset/meta-rules-dat/geoip/telegram.mrs"
 
+  # Claude / Anthropic
+  anthropic_domain:
+    <<: *domain_mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs"
+    path: "./ruleset/meta-rules-dat/geosite/anthropic.mrs"
+
   # 境外 AI 服务汇总
   category_ai_non_cn_domain:
     <<: *domain_mrs
@@ -614,6 +640,9 @@ rules:
 
   # Gemini 独立分流，须位于通用 AI 和 Google 前
   - RULE-SET,google_gemini,Gemini
+
+  # Claude 独立分流，须位于通用 AI 前
+  - RULE-SET,anthropic_domain,Claude
 
   # 境外 AI 服务汇总，须位于 Google 前
   - RULE-SET,category_ai_non_cn_domain,AI
