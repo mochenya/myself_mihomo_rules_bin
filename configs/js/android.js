@@ -164,7 +164,7 @@ const proxyGroupConfig = [
       "🇬🇧 | 英国 UK",
     ],
     "include-all": true,
-    icon: "https://fastly.jsdelivr.net/gh/ke1ewang/Qi@master/Claude.png",
+    icon: "https://fastly.jsdelivr.net/gh/lobehub/lobe-icons@master/packages/static-png/dark/claude-color.png",
   },
   {
     ...selectBase,
