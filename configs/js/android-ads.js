@@ -156,6 +156,7 @@ const proxyGroupConfig = [
     name: "Claude",
     type: "select",
     proxies: [
+      "AI",
       "Proxy",
       "AUTO",
       "🇺🇸 | 美国 US",
@@ -176,6 +177,7 @@ const proxyGroupConfig = [
     name: "Gemini",
     type: "select",
     proxies: [
+      "AI",
       "Proxy",
       "AUTO",
       "🇺🇸 | 美国 US",
@@ -190,6 +192,27 @@ const proxyGroupConfig = [
     ],
     "include-all": true,
     icon: "https://cdn.jsdelivr.net/gh/guaishouxiaoqi/icons@master/Color/Gemini.png",
+  },
+  {
+    ...selectBase,
+    name: "ChatGPT",
+    type: "select",
+    proxies: [
+      "AI",
+      "Proxy",
+      "AUTO",
+      "🇺🇸 | 美国 US",
+      "🇹🇼 | 台湾 TW",
+      "🇯🇵 | 日本 JP",
+      "🇰🇷 | 韩国 KR",
+      "🇸🇬 | 新加坡 SG",
+      "🇭🇰 | 香港 HK",
+      "🇩🇪 | 德国 DE",
+      "🇫🇷 | 法国 FR",
+      "🇬🇧 | 英国 UK",
+    ],
+    "include-all": true,
+    icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png",
   },
   {
     ...selectBase,
@@ -396,6 +419,12 @@ const ruleProviders = {
     url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs",
     path: "./ruleset/meta-rules-dat/geosite/anthropic.mrs",
   },
+  // ChatGPT / OpenAI
+  openai_domain: {
+    ...domain_mrs,
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.mrs",
+    path: "./ruleset/meta-rules-dat/geosite/openai.mrs",
+  },
   // Google
   google_domain: {
     ...domain_mrs,
@@ -429,6 +458,9 @@ const rules = [
 
   // Gemini 独立分流，须位于通用 AI 和 Google 前
   "RULE-SET,google_gemini,Gemini",
+
+  // ChatGPT / OpenAI 独立分流，须位于通用 AI 前
+  "RULE-SET,openai_domain,ChatGPT",
 
   // Claude 独立分流，须位于通用 AI 前
   "RULE-SET,anthropic_domain,Claude",
