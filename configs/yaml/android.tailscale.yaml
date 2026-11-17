@@ -92,19 +92,15 @@ dns:
   nameserver: # 未分类域名由境外 DNS 兜底，出口跟随主策略组 Proxy
     - "https://1.1.1.1/dns-query#Proxy"
     - "https://8.8.8.8/dns-query#Proxy"
-  proxy-server-nameserver: # 独立直连解析代理节点域名，避免循环依赖
+  proxy-server-nameserver: &cn-dns # 独立直连解析代理节点域名，避免循环依赖
     - "https://223.5.5.5/dns-query#DIRECT"
     - "https://doh.pub/dns-query#DIRECT"
-  direct-nameserver: # DIRECT 出站域名解析
-    - "https://223.5.5.5/dns-query#DIRECT"
-    - "https://doh.pub/dns-query#DIRECT"
+  direct-nameserver: *cn-dns # DIRECT 出站域名解析
   direct-nameserver-follow-policy: false
   nameserver-policy: # 按域名区分解析上游
     "+.ts.net": # MagicDNS 通过内嵌 Tailscale 节点解析
       - "ts://Tailscale-Node"
-    "rule-set:cn_domain,tld-cn_domain,microsoft@cn_domain,filter":
-      - "https://223.5.5.5/dns-query#DIRECT"
-      - "https://doh.pub/dns-query#DIRECT"
+    "rule-set:cn_domain,tld-cn_domain,microsoft@cn_domain,filter": *cn-dns
 
 # 策略组配置模板
 # select 类型策略组基础配置（手动选择，无需健康检查）
@@ -119,17 +115,41 @@ group-base: &group-base
   max-failed-times: 2 # 连接失败达到阈值时触发强制健康检查
   # hidden: true
 
+# 所有机场订阅列表
+all-providers: &all-providers
+  - Airport-One
+  - Airport-Two
+  - Airport-Three
+
 # 地区分组基础配置（继承 group-base 的健康检查参数）
 region-base: &region-base
   <<: *group-base # 合并健康检查配置
   type: url-test
-  use:
-    - Airport-One
-    - Airport-Two
-    - Airport-Three
+  use: *all-providers
   tolerance: 50
   empty-fallback: REJECT # 地区组没有候选节点时明确拒绝，避免空组回退直连
   # hidden: true
+
+# AI 子策略组基础配置
+ai-sub-base: &ai-sub-base
+  type: select
+  proxies:
+    [
+      AI,
+      Proxy,
+      AUTO,
+      "🇺🇸 | 美国 US",
+      "🇹🇼 | 台湾 TW",
+      "🇯🇵 | 日本 JP",
+      "🇰🇷 | 韩国 KR",
+      "🇸🇬 | 新加坡 SG",
+      "🇭🇰 | 香港 HK",
+      "🇩🇪 | 德国 DE",
+      "🇫🇷 | 法国 FR",
+      "🇬🇧 | 英国 UK",
+    ]
+  include-all: true
+  exclude-filter: "^Tailscale-Node$" # 私有网络不参与普通业务节点选择
 
 # 策略组
 proxy-groups:
@@ -166,34 +186,11 @@ proxy-groups:
   - name: AUTO
     type: url-test
     <<: *group-base
-    use:
-      - Airport-One
-      - Airport-Two
-      - Airport-Three
+    use: *all-providers
     tolerance: 50 # 新节点至少快 50ms 才切换；设为 0 可严格追随最低延迟，但更容易抖动
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Speedtest.png
 
   # 应用策略组
-  # - name: YouTube
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       DIRECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png
-
   - name: AI
     type: select
     <<: *select-base
@@ -216,68 +213,15 @@ proxy-groups:
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png
 
   - name: Claude
-    type: select
-    <<: *select-base
-    proxies:
-      [
-        AI,
-        Proxy,
-        AUTO,
-        "🇺🇸 | 美国 US",
-        "🇹🇼 | 台湾 TW",
-        "🇯🇵 | 日本 JP",
-        "🇰🇷 | 韩国 KR",
-        "🇸🇬 | 新加坡 SG",
-        "🇭🇰 | 香港 HK",
-        "🇩🇪 | 德国 DE",
-        "🇫🇷 | 法国 FR",
-        "🇬🇧 | 英国 UK",
-      ]
-    include-all: true
+    <<: *ai-sub-base
     icon: https://fastly.jsdelivr.net/gh/lobehub/lobe-icons@master/packages/static-png/dark/claude-color.png
 
   - name: Gemini
-    type: select
-    <<: *select-base
-    proxies:
-      [
-        AI,
-        Proxy,
-        AUTO,
-        "🇺🇸 | 美国 US",
-        "🇹🇼 | 台湾 TW",
-        "🇯🇵 | 日本 JP",
-        "🇰🇷 | 韩国 KR",
-        "🇸🇬 | 新加坡 SG",
-        "🇭🇰 | 香港 HK",
-        "🇩🇪 | 德国 DE",
-        "🇫🇷 | 法国 FR",
-        "🇬🇧 | 英国 UK",
-      ]
-    include-all: true
-    exclude-filter: "^Tailscale-Node$" # 私有网络不参与普通业务节点选择
+    <<: *ai-sub-base
     icon: https://cdn.jsdelivr.net/gh/guaishouxiaoqi/icons@master/Color/Gemini.png
 
   - name: ChatGPT
-    type: select
-    <<: *select-base
-    proxies:
-      [
-        AI,
-        Proxy,
-        AUTO,
-        "🇺🇸 | 美国 US",
-        "🇹🇼 | 台湾 TW",
-        "🇯🇵 | 日本 JP",
-        "🇰🇷 | 韩国 KR",
-        "🇸🇬 | 新加坡 SG",
-        "🇭🇰 | 香港 HK",
-        "🇩🇪 | 德国 DE",
-        "🇫🇷 | 法国 FR",
-        "🇬🇧 | 英国 UK",
-      ]
-    include-all: true
-    exclude-filter: "^Tailscale-Node$" # 私有网络不参与普通业务节点选择
+    <<: *ai-sub-base
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png
 
   - name: Google
@@ -301,148 +245,6 @@ proxy-groups:
     include-all: true
     exclude-filter: "^Tailscale-Node$" # 私有网络不参与普通业务节点选择
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png
-
-  # - name: Claude
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       Proxy,
-  #       "🇺🇸 | 美国 US",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇭🇰 | 香港 HK",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       DIRECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/lobehub/lobe-icons@master/packages/static-png/dark/claude-color.png
-
-  # - name: Telegram
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       DIRECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram.png
-
-  # - name: Twitter
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       DIRECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Twitter.png
-
-  # - name: Spotify
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       DIRECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Spotify.png
-
-  # - name: OneDrive
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       DIRECT,
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/OneDrive.png
-
-  # - name: Microsoft
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       DIRECT,
-  #       Proxy,
-  #       REJECT,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Microsoft.png
-
-  # - name: Apple
-  #   type: select
-  #   <<: *group-base
-  #   proxies:
-  #     [
-  #       DIRECT,
-  #       Proxy,
-  #       "🇭🇰 | 香港 HK",
-  #       "🇹🇼 | 台湾 TW",
-  #       "🇯🇵 | 日本 JP",
-  #       "🇰🇷 | 韩国 KR",
-  #       "🇺🇸 | 美国 US",
-  #       "🇩🇪 | 德国 DE",
-  #       "🇸🇬 | 新加坡 SG",
-  #       "🇫🇷 | 法国 FR",
-  #       "🇬🇧 | 英国 UK",
-  #       REJECT,
-  #     ]
-  #   include-all: true
-  #   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Apple.png
 
   # 地区策略组（按节点名称筛选）
   - name: "🇭🇰 | 香港 HK"
