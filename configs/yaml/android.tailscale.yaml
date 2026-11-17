@@ -499,6 +499,12 @@ proxy-groups:
     <<: *select-base
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/link.svg
 
+  - name: AdBlock
+    type: select
+    proxies: [REJECT, DIRECT, Proxy]
+    <<: *select-base
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Advertising.png
+
   - name: GlobalBlock
     type: select
     proxies: [REJECT, DIRECT]
@@ -585,15 +591,10 @@ rule-providers:
     path: "./ruleset/meta-rules-dat/geosite/tld-cn.mrs"
 
   # 广告拦截
-  category-ads_domain:
+  awavenue_ads_domain:
     <<: *domain_mrs
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads@ads.mrs"
-    path: "./ruleset/meta-rules-dat/geosite/category-ads@ads.mrs"
-
-  # xiaomi-ads_domain:
-  #   <<: *domain_mrs
-  #   url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaomi-ads.mrs"
-  #   path: "./ruleset/meta-rules-dat/geosite/xiaomi-ads.mrs"
+    url: "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs"
+    path: "./ruleset/awavenue/AWAvenue-Ads-Rule-Clash.mrs"
 
   # google-ads_domain:
   #   <<: *domain_mrs
@@ -660,9 +661,8 @@ rules:
   - RULE-SET,private_domain,DIRECT
 
   # 广告拦截
-  - RULE-SET,category-ads_domain,GlobalBlock
-  # - RULE-SET,xiaomi-ads_domain,GlobalBlock
-  # - RULE-SET,google-ads_domain,GlobalBlock
+  - RULE-SET,awavenue_ads_domain,AdBlock
+  # - RULE-SET,google-ads_domain,AdBlock
 
   # Gemini 独立分流，须位于通用 AI 和 Google 前
   - RULE-SET,google_gemini,Gemini
